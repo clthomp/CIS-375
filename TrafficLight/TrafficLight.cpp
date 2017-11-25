@@ -27,10 +27,21 @@ private:
 	vector<int> roadDensity;
 public:
 	vector<Road*> roadsThatIntersect;
+	struct TogetherRoad {
+		vector<Road*> roads;
+		int time;
+	};
+	vector<TogetherRoad*> togetherRoads;
 	Intersection(string name, vector<Road*>roads, vector<int>density) {
 		name = name;
 		roadsThatIntersect = roads;
 		roadDensity = density;
+
+		findTogetherRoads();
+	}
+
+	void findTogetherRoads() {
+		
 	}
 };
 
@@ -46,12 +57,6 @@ private:
 
 	int minimumLightTime;
 	int maximumLightTime;
-
-	int findPotentialFlow(vector<vector<int>> lightTimes) {
-		// use traffic density to find sum of all cars passing through all intersections over time 't'
-		// for lights not yet determined, use ideal flow
-		return 0;
-	}
 public:
 	vector<Intersection> intersections;
 	void importRoads(Road inputRoads) {
@@ -64,9 +69,42 @@ public:
 
 	vector<vector<int>> lightOptimization() {
 		struct Node {
+			vector<Intersection> intersections;
 			vector<vector<int>> lightTimes;
 			int potentialFlow = 0;
 			int currentIntersection = 0;
+
+			Node(vector<Intersection> intersections, vector<vector<int>> lightTimes, int currentIntersection) {
+				intersections = intersections;
+				lightTimes = lightTimes;
+				currentIntersection = currentIntersection;
+				updatePotentialFlow();
+			}
+
+			void updatePotentialFlow() {
+				potentialFlow = findPotentialFlow();
+			}
+
+			int findPotentialFlow() {
+				// use traffic density to find sum of all cars passing through all intersections over time 't'
+				int density = 0;
+				for (int i = 0; i < currentIntersection; i++) {
+					for (int j = 0; j < lightTimes[i].size(); j++) {
+						density += lightTimes[i][j];
+					}
+				}
+
+				// for lights not yet determined, use ideal flow
+				// assume rest are in the ideal state
+				// ideal be if 100% of cars were incoming from one way and 100% outgoing another way
+				// as if 100% of cars incoming and outgoing the same 2 directions, with max light time on those, and min light time on the others
+				for (int i = currentIntersection; i < intersections.size() ; i++) {
+					for (int j = 0; j < lightTimes[i].size(); j++) {
+						density += lightTimes[i][j];
+					}
+				}
+				return density;
+			}
 		};
 		struct LessThanByPromising {
 			bool operator()(const Node& lhs, const Node& rhs) const
@@ -77,12 +115,14 @@ public:
 
 		// PQ of node potential timings
 		priority_queue<Node, vector<Node>, LessThanByPromising> pq;
-		Node initial;
+
+		vector<vector<int>> initialLightTimes;
 		for (int i = 0; i < intersections.size(); i++) {
 			vector<int> singleLightTime(intersections[i].roadsThatIntersect.size(), 0); /*TODO: div 2*/
-			initial.lightTimes.push_back(singleLightTime);
+			initialLightTimes.push_back(singleLightTime);
 		}
-		initial.potentialFlow = findPotentialFlow(initial.lightTimes);
+
+		Node initial(intersections, initialLightTimes, 0);
 		pq.push(initial);
 
 		if (intersections.size() > 0) {
@@ -92,17 +132,20 @@ public:
 
 				// add more nodes to pq
 				// for each light at the current intersection, try adding 5 to it
-				// TODO: +- 5 or the same
 				// TODO: multiple light changes in the same Node
+				// right now each node only changes 1 light
+				// FIX: each light has its own timing, needs to align timings for parallel roads
+
+				// ensure haven't passed max number of intersections
 				if (currentNode.currentIntersection < currentNode.lightTimes.size()) {
 					int lightCount = currentNode.lightTimes[currentNode.currentIntersection].size();
 					for (int i = 0; i < lightCount; i++) {
-						Node newNode;
-						newNode.currentIntersection = currentNode.currentIntersection + 1;
-						newNode.lightTimes = currentNode.lightTimes;
-						newNode.lightTimes[currentNode.currentIntersection][i] += 5;
-						newNode.potentialFlow = findPotentialFlow(newNode.lightTimes);
-						pq.push(newNode);
+						for (int j = -5; j <= 5; j = j + 5) { // do for -5, 0, 5
+							vector<vector<int>> newLightTimes = currentNode.lightTimes;
+							newLightTimes[currentNode.currentIntersection][i] += j;
+							Node newNode(intersections, newLightTimes, currentNode.currentIntersection + 1);
+							pq.push(newNode);
+						}
 					}
 				}
 
