@@ -154,6 +154,7 @@ public:
 
 		Node initial(intersections, initialLightTimes, 0);
 		pq.push(initial);
+		int totalNodes = 1;
 
 		if (intersections.size() > 0) {
 			while (!pq.empty()) {
@@ -174,6 +175,7 @@ public:
 							newLightTimes[currentNode.currentIntersection][i] += j;
 							Node newNode(intersections, newLightTimes, currentNode.currentIntersection + 1);
 							pq.push(newNode);
+							totalNodes++;
 						}
 					}
 				}
@@ -183,10 +185,13 @@ public:
 				// then a solution has been found
 				if (currentNode.currentIntersection == intersections.size() && pq.top().potentialFlow <= currentNode.potentialFlow) {
 					// lightTimes belonging to the best node
+					cout << "Optimization iteration ran using Node Count: " << totalNodes << endl;
 					return currentNode.lightTimes;
 				}
 			}
 		}
+
+		cout << "Optimization iteration ran using Node Count: " << totalNodes << endl;
 
 		return initial.lightTimes; 
 	}
