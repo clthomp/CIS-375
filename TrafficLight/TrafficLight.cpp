@@ -8,13 +8,14 @@ class Intersection;
 
 class Road {
 private:
-	string name;
+	//string name;
 	int travelTime;
 	vector<Intersection> endPoints;
 	void setEndPoint(Intersection point); // located following Intersection class definition
 public:
+	string name;
 	Road(string name, int travelTime) {
-		name = name;
+		this->name = name;
 		travelTime = travelTime;
 	}
 };
@@ -29,11 +30,16 @@ public:
 	vector<Road*> roadsThatIntersect;
 	struct TogetherRoad {
 		vector<Road*> roads;
-		int time;
+		string name;
+		//int time;
+		TogetherRoad(Road* initialRoad) {
+			roads.push_back(initialRoad);
+			this->name = initialRoad->name;
+		}
 	};
-	vector<TogetherRoad*> togetherRoads;
+	vector<TogetherRoad> togetherRoads;
 	Intersection(string name, vector<Road*>roads, vector<int>density) {
-		name = name;
+		this->name = name;
 		roadsThatIntersect = roads;
 		roadDensity = density;
 
@@ -41,7 +47,20 @@ public:
 	}
 
 	void findTogetherRoads() {
-		
+		// unite all roads of the same name
+		for (int i = 0; i < roadsThatIntersect.size(); i++) {
+			bool isFound = false;
+			for (int j = 0; j < togetherRoads.size(); j++) {
+				if (roadsThatIntersect[i]->name == togetherRoads[j].name) {
+					isFound = true;
+					(togetherRoads[j].roads).push_back(roadsThatIntersect[i]);
+				}
+			}
+
+			if (!isFound) {
+				togetherRoads.push_back(TogetherRoad(roadsThatIntersect[i]));
+			}
+		}
 	}
 };
 
@@ -62,9 +81,14 @@ public:
 	void importRoads(Road inputRoads) {
 		roads.push_back(inputRoads);
 	}
-
 	void importIntersections(Intersection inputIntersections) {
 		intersections.push_back(inputIntersections);
+	}
+	void setMin(int min) {
+		minimumLightTime = min;
+	}
+	void setMax(int max) {
+		maximumLightTime = max;
 	}
 
 	vector<vector<int>> lightOptimization() {
@@ -75,9 +99,9 @@ public:
 			int currentIntersection = 0;
 
 			Node(vector<Intersection> intersections, vector<vector<int>> lightTimes, int currentIntersection) {
-				intersections = intersections;
-				lightTimes = lightTimes;
-				currentIntersection = currentIntersection;
+				this->intersections = intersections;
+				this->lightTimes = lightTimes;
+				this->currentIntersection = currentIntersection;
 				updatePotentialFlow();
 			}
 
@@ -117,8 +141,11 @@ public:
 		priority_queue<Node, vector<Node>, LessThanByPromising> pq;
 
 		vector<vector<int>> initialLightTimes;
+		float averageLightTime = (minimumLightTime + maximumLightTime) / 2;
 		for (int i = 0; i < intersections.size(); i++) {
-			vector<int> singleLightTime(intersections[i].roadsThatIntersect.size(), 0); /*TODO: div 2*/
+			// TODO: bound by min and max (set as average?)
+			// change times to float?
+			vector<int> singleLightTime(intersections[i].togetherRoads.size(), averageLightTime); /*number of light times as connected roads*/
 			initialLightTimes.push_back(singleLightTime);
 		}
 
@@ -134,9 +161,8 @@ public:
 				// for each light at the current intersection, try adding 5 to it
 				// TODO: multiple light changes in the same Node
 				// right now each node only changes 1 light
-				// FIX: each light has its own timing, needs to align timings for parallel roads
 
-				// ensure haven't passed max number of intersections
+				// ensures it hasn't passed max number of intersections
 				if (currentNode.currentIntersection < currentNode.lightTimes.size()) {
 					int lightCount = currentNode.lightTimes[currentNode.currentIntersection].size();
 					for (int i = 0; i < lightCount; i++) {
@@ -161,14 +187,6 @@ public:
 
 		return initial.lightTimes; 
 	}
-
-	void setMin(int min) {
-		minimumLightTime = min;
-	}
-
-	void setMax(int max) {
-		maximumLightTime = max;
-	}
 };
 
 void main() {
@@ -189,5 +207,10 @@ void main() {
 	map.intersections.push_back(intersectionAB);
 
 	vector<vector<int>> lightTimings = map.lightOptimization();
+	for (int i = 0; i < lightTimings.size(); i++) {
+		for (int j = 0; j < lightTimings[i].size(); j++) {
+			cout << lightTimings[i][j] << endl;
+		}
+	}
 	cout << "finished computation";
 }
