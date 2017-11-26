@@ -1,8 +1,16 @@
 #include <iostream>
+#include <string>
+#include <fstream> //for Input and Output
 #include <vector>
 #include <queue>
 
 using namespace std;
+
+void strPopFront(string & input);						//for Input & Output
+const string PARAM_DELIM = "--";						//string to identify keyboard input as a parameter specifier
+const string CALC_INIT = PARAM_DELIM + "calculate";		//string to initiate calculation in parser
+const string MIN_PID = PARAM_DELIM + "mintiming";		//string for parser to identify request for min timing change
+const string MAX_PID = PARAM_DELIM + "maxtiming";		//string for parser to identify request for max timing change
 
 class Intersection;
 
@@ -14,8 +22,8 @@ private:
 	void setEndPoint(Intersection point); // located following Intersection class definition
 public:
 	Road(string name, int travelTime) {
-		name = name;
-		travelTime = travelTime;
+		Road::name = name;
+		Road::travelTime = travelTime;
 	}
 };
 
@@ -171,6 +179,225 @@ public:
 	}
 };
 
+class Input {
+	
+	typedef void(*paramSet)(int);	//function pointer to Map method to set a specific parameter.
+
+private:
+	ifstream input;			//input stream of .csv file
+	Map* map;				//pointer to Map object to store Input into
+	
+	string roadname() {		//parse roadname non-terminal of input grammar; returns string of roadname
+
+
+	}
+
+	bool road() {			//parses road non-terminal of input grammar; returns true if succeeds, false if not
+
+		Road * blueprint;
+		string name;
+		int time;
+
+		try {
+
+			name = roadname();
+
+			if (input.get() != ',')
+				return false;
+
+			time = traveltime();
+
+			if (input.get() != ',')
+				return false;
+
+			if (input.get() != '\n')
+				return false;
+
+			blueprint = new Road(name, time);
+
+			map->importRoads(*blueprint);
+		}
+		catch (...) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	bool intersection() {	//parses intersection non-terminal of input grammar; returns true if succeeds, false if not
+
+		Intersection * blueprint;
+		string name;
+		Road * road;
+		vector<Road*> roadlist;
+		int density, lanes;
+		vector<int> densitylist;
+		bool go;
+
+		try {
+
+			name = intersectname();
+
+			if (input.get() != ',')
+				return false;
+
+			if (input.get() != '\n')
+				return false;
+
+			do {
+				
+				try {
+					road = roadname();
+
+					if (input.get() != ',')
+						throw false;
+
+					density = trafficdensity();
+
+					if (input.get() != ',')
+						throw false;
+
+					lanes = lane();
+
+					if (input.get() != '\n')
+						throw false;
+
+
+				}
+				catch (...) {
+					go = false;
+				}
+
+			} while (go);
+		}
+		catch (...) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	void roads() {			//parse roads non-terminal of input grammar
+
+		char feed[10];
+		bool go = true;
+
+		input.getline(feed, 10);
+
+		if (feed != ":ROADS,,")
+			throw "Input file does not contain ':ROADS'!";
+
+		do {
+
+			go = road();
+
+		} while (go);
+	}
+
+	void intersections() {	//parse intersections non-terminal of input grammar
+
+		char feed[20];
+		bool go = true;
+
+		input.getline(feed, 20);
+
+		if (feed != ":INTERSECTIONS,,")
+			throw "Input file does not contain ':INTERSECTIONS'!";
+
+		do {
+
+			go = intersection();
+
+		} while (go);
+	}
+
+	void data() {			//parse data non-terminal of input grammar
+
+		roads();
+
+		intersections();
+	}
+	
+	void parseInput() {		//to parse input given from .csv file
+
+			char feed[10];
+
+			input.getline(feed, 10);
+
+			if (feed != ":BEGIN,,")
+				throw "Input file does not contain ':BEGIN'!";
+
+			data();
+
+			input.getline(feed, 10);
+
+			if (feed != ":END,,")
+				throw "Input file does not contain ':END'!";
+	}
+
+	paramSet pid(string & input) {		//returns function pointer of proper Map method given input
+	
+		if (input.substr(0, 11) == MIN_PID) {
+			
+			input = input.substr(11, input.size());
+			
+			return map->setMin;
+		}
+		else if (input.substr(0, 11) == MAX_PID) {
+
+			input = input.substr(11, input.size());
+
+			return map->setMax;
+		}
+		else {
+			
+			throw "Invalid Parameter Specifier!";
+		}
+	}
+
+	int value(string & input) {		//returns int if input can be converted into one
+	
+		try {
+
+			return stoi(input);
+		}
+		catch (...) {
+
+			throw "Invalid Integer!";
+		}
+	}
+
+	void parseParam(string & input) {		//to parse input from keyboard during runtime
+
+		paramSet p = pid(input);
+
+		if (input[0] != ' ')
+			throw "No space after Parameter Specifier!";
+		strPopFront(input);
+
+		p(value(input));
+	}
+
+public:
+	Input(string inputPath, Map &m) {								//constructor that takes filepath of .csv file and Map object to store input into
+
+		input.exceptions(ifstream::failbit | ifstream::badbit);		//sets input to throw exceptions for logical or read errors
+		input.open(inputPath);
+
+		map = &m;
+	}
+
+	void paramQuery(string input) {		//to begin parsing of parameter query 'input'
+
+		if (input == CALC_INIT)
+			parseInput();
+		else
+			parseParam(input);
+	}
+};
+
 void main() {
 	Map map;
 	map.setMin(15);
@@ -190,4 +417,9 @@ void main() {
 
 	vector<vector<int>> lightTimings = map.lightOptimization();
 	cout << "finished computation";
+}
+
+void strPopFront(string & input) {	//removes first character of 'input'
+	
+	input = input.substr(1, input.size());
 }
