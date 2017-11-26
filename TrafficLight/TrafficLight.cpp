@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <string>
 
 using namespace std;
 
@@ -20,14 +21,16 @@ public:
 	}
 };
 
+// class written by Robert Piepsney
 class Intersection {
 private:
 	// assume roads with the same name lead the same way
 	//vector<Road*> roadsThatIntersect;
-	string name;
+	//string name;
 	vector<int> roadDensity;
 public:
 	vector<Road*> roadsThatIntersect;
+	string name;
 	struct TogetherRoad {
 		vector<Road*> roads;
 		string name;
@@ -68,7 +71,7 @@ void Road::setEndPoint(Intersection point) {
 	endPoints.push_back(point);
 }
 
-
+// class written by Robert Piepsney
 class Map {
 private:
 	vector<Road> roads;
@@ -208,8 +211,9 @@ void main() {
 
 	vector<vector<int>> lightTimings = map.lightOptimization();
 	for (int i = 0; i < lightTimings.size(); i++) {
+		cout << "Intersection: " << map.intersections[i].name << endl;
 		for (int j = 0; j < lightTimings[i].size(); j++) {
-			cout << lightTimings[i][j] << endl;
+			cout << "\t" << map.intersections[i].togetherRoads[j].name << ": " << lightTimings[i][j] << endl;
 		}
 	}
 	cout << "finished computation";
