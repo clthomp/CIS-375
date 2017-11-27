@@ -94,6 +94,27 @@ public:
 		maximumLightTime = max;
 	}
 
+	vector<vector<int>> tempSolutions;
+
+	// recursive method to generate all possible changes for light times
+	// a light time can either increase, decrease, or stay the same
+	void getLightChanges(vector<int> currentChanges, int current) {
+		if (current >= currentChanges.size()) {
+			tempSolutions.push_back(currentChanges);
+		}
+		else {
+			getLightChanges(currentChanges, current + 1);
+			currentChanges[current] += 1;
+			getLightChanges(currentChanges, current + 1);
+			currentChanges[current] -= 2;
+			getLightChanges(currentChanges, current + 1);
+		}
+	}
+
+	void doSpreadDensity(vector<vector<int>> currentLightTimes) {
+
+	}
+
 	vector<vector<int>> lightOptimization() {
 		struct Node {
 			vector<Intersection> intersections;
@@ -156,44 +177,63 @@ public:
 		pq.push(initial);
 		int totalNodes = 1;
 
+		vector<vector<int>> resultLightTimes = initial.lightTimes;
+
 		if (intersections.size() > 0) {
-			while (!pq.empty()) {
-				Node currentNode = pq.top();
-				pq.pop();
+			int iterations = 1;
+			for (int iter = 0; iter < iterations; iter++) {
+				while (!pq.empty()) {
+					Node currentNode = pq.top();
+					pq.pop();
 
-				// add more nodes to pq
-				// for each light at the current intersection, try adding 5 to it
-				// TODO: multiple light changes in the same Node
-				// right now each node only changes 1 light
+					// add more nodes to pq
+					// for each light at the current intersection, try adding 5 to it
+					// TODO: multiple light changes in the same Node
+					// right now each node only changes 1 light
 
-				// ensures it hasn't passed max number of intersections
-				if (currentNode.currentIntersection < currentNode.lightTimes.size()) {
-					int lightCount = currentNode.lightTimes[currentNode.currentIntersection].size();
-					for (int i = 0; i < lightCount; i++) {
-						for (int j = -5; j <= 5; j = j + 5) { // do for -5, 0, 5
+					// ensures it hasn't passed max number of intersections
+					if (currentNode.currentIntersection < currentNode.lightTimes.size()) {
+						int lightCount = currentNode.lightTimes[currentNode.currentIntersection].size();
+						vector<int> changesSet(lightCount, 0);
+						tempSolutions.clear();
+						getLightChanges(changesSet, 0);
+						//backtracking
+						cout << "Size of thing: " << tempSolutions.size() << endl;
+						for (int i = 0; i < tempSolutions.size(); i++) {
 							vector<vector<int>> newLightTimes = currentNode.lightTimes;
-							newLightTimes[currentNode.currentIntersection][i] += j;
+							for (int j = 0; j < tempSolutions[i].size(); j++) {
+								newLightTimes[currentNode.currentIntersection][j] += tempSolutions[i][j];
+							}
 							Node newNode(intersections, newLightTimes, currentNode.currentIntersection + 1);
 							pq.push(newNode);
 							totalNodes++;
 						}
 					}
+
+					// if the current node is a potential solution (reached last intersection)
+					// and the top node is no more promising than the current Node,
+					// then a solution has been found
+					if (currentNode.currentIntersection == intersections.size() && pq.top().potentialFlow <= currentNode.potentialFlow) {
+						// lightTimes belonging to the best node
+						resultLightTimes = currentNode.lightTimes;
+						break;
+					}
 				}
 
-				// if the current node is a potential solution (reached last intersection)
-				// and the top node is no more promising than the current Node,
-				// then a solution has been found
-				if (currentNode.currentIntersection == intersections.size() && pq.top().potentialFlow <= currentNode.potentialFlow) {
-					// lightTimes belonging to the best node
-					cout << "Optimization iteration ran using Node Count: " << totalNodes << endl;
-					return currentNode.lightTimes;
-				}
+				cout << "Optimization iteration ran using Node Count: " << totalNodes << endl;
+
+				// spread density
+				doSpreadDensity(resultLightTimes);
+
+				// effectively a clear
+				pq = priority_queue<Node, vector<Node>, LessThanByPromising>();
+				Node nextInitial(intersections, resultLightTimes, 0);
+				pq.push(initial);
+				totalNodes = 1;
 			}
 		}
 
-		cout << "Optimization iteration ran using Node Count: " << totalNodes << endl;
-
-		return initial.lightTimes; 
+		return resultLightTimes;
 	}
 };
 
