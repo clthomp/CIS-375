@@ -40,7 +40,7 @@ public:
 		int time;
 	};
 	vector<TogetherRoad*> togetherRoads;
-	Intersection(string name, vector<Road*>roads, vector<int>density) {
+	Intersection(string name, vector<Road*>roads, vector<int>density) {		//TODO: This needs to call setEndPoint(*this) for all Roads in roadsThatIntersect per Sequence Diagram! --Dwight
 		name = name;
 		roadsThatIntersect = roads;
 		roadDensity = density;
@@ -53,7 +53,7 @@ public:
 	}
 };
 
-void Road::setEndPoint(Intersection point) {
+void Road::setEndPoint(Intersection point) {	//TODO: This needs to ensure endPoints <= 2! --Dwight
 	endPoints.push_back(point);
 }
 
@@ -179,7 +179,7 @@ public:
 	}
 };
 
-class Input {
+class Input {	//NEEDS TO BE CONTAINED WITHIN A TRY BLOCK. WILL THROW EXCEPTIONS!
 	
 	typedef void(*paramSet)(int);	//function pointer to Map method to set a specific parameter.
 
@@ -188,6 +188,31 @@ private:
 	Map* map;				//pointer to Map object to store Input into
 	
 	string roadname() {		//parse roadname non-terminal of input grammar; returns string of roadname
+
+
+	}
+
+	int traveltime() {	//parse traveltime non-terminal of input grammar; returns integer of traveltime
+
+
+	}
+
+	string intersectname() {	//parse intersectname non-terminal of input grammar; returns string of intersection name
+
+
+	}
+
+	Road * existroadname() {	//parse existroadname() non-terminal of input grammar; returns pointer to Road already within Map* map
+
+
+	}
+
+	int trafficdensity() {	//parse trafficdensity non-terminal of input grammar; returns integer of traffic density
+
+
+	}
+
+	int lane() {	//parse lane non-terminal of input grammar; returns integer of lane number
 
 
 	}
@@ -216,6 +241,8 @@ private:
 			blueprint = new Road(name, time);
 
 			map->importRoads(*blueprint);
+
+			delete blueprint;
 		}
 		catch (...) {
 
@@ -234,6 +261,7 @@ private:
 		int density, lanes;
 		vector<int> densitylist;
 		bool go;
+		streampos bookmark;
 
 		try {
 
@@ -246,9 +274,11 @@ private:
 				return false;
 
 			do {
+
+				bookmark = input.tellg();	//saves streampos of the current line
 				
 				try {
-					road = roadname();
+					road = existroadname();
 
 					if (input.get() != ',')
 						throw false;
@@ -263,13 +293,22 @@ private:
 					if (input.get() != '\n')
 						throw false;
 
-
+					roadlist.push_back(road);
+					densitylist.push_back(density);
 				}
 				catch (...) {
 					go = false;
 				}
 
 			} while (go);
+
+			input.seekg(bookmark);	//restores saved streampos in case try block throws within the line
+
+			blueprint = new Intersection(name, roadlist, densitylist);
+
+			map->importIntersections(*blueprint);
+
+			delete blueprint;
 		}
 		catch (...) {
 
@@ -283,6 +322,7 @@ private:
 
 		char feed[10];
 		bool go = true;
+		streampos bookmark;
 
 		input.getline(feed, 10);
 
@@ -291,26 +331,35 @@ private:
 
 		do {
 
+			bookmark = input.tellg();	//saves streampos of the current line
+
 			go = road();
 
 		} while (go);
+
+		input.seekg(bookmark);	//restores saved streampos in case road() failed within the line
 	}
 
 	void intersections() {	//parse intersections non-terminal of input grammar
 
 		char feed[20];
 		bool go = true;
+		streampos bookmark;
 
 		input.getline(feed, 20);
 
 		if (feed != ":INTERSECTIONS,,")
 			throw "Input file does not contain ':INTERSECTIONS'!";
-
+		
 		do {
+
+			bookmark = input.tellg();	//saves streampos of the current line
 
 			go = intersection();
 
 		} while (go);
+
+		input.seekg(bookmark);	//restores saved streampos in case intersection() failed within the line
 	}
 
 	void data() {			//parse data non-terminal of input grammar
@@ -419,7 +468,7 @@ void main() {
 	cout << "finished computation";
 }
 
-void strPopFront(string & input) {	//removes first character of 'input'
+inline void strPopFront(string & input) {	//removes first character of 'input'
 	
 	input = input.substr(1, input.size());
 }
