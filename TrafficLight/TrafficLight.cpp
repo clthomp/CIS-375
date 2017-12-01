@@ -11,12 +11,15 @@ class Road {
 private:
 	//string name;
 	int travelTime;
-	vector<Intersection> endPoints;
+	//vector<Intersection> endPoints;
 	void setEndPoint(Intersection point); // located following Intersection class definition
 public:
 	string name;
-	Road(string name, int travelTime) {
+	string id;
+	vector<Intersection> endPoints;
+	Road(string name, string id, int travelTime) {
 		this->name = name;
+		this->id = id;
 		travelTime = travelTime;
 	}
 };
@@ -27,10 +30,11 @@ private:
 	// assume roads with the same name lead the same way
 	//vector<Road*> roadsThatIntersect;
 	//string name;
-	vector<int> roadDensity;
+	//vector<int> roadDensity;
 public:
 	vector<Road*> roadsThatIntersect;
 	string name;
+	vector<int> roadDensity; // parallel to roadsThatIntersect
 	struct TogetherRoad {
 		vector<Road*> roads;
 		string name;
@@ -65,10 +69,25 @@ public:
 			}
 		}
 	}
+
+	int roadIndexToLight(int roadIndex) {
+		// assume roadIndex is an index in roadsThatIntersect, return its index in togetherRoads
+		for (int i = 0; i < togetherRoads.size(); i++) {
+			for (int j = 0; j < togetherRoads[i].roads.size(); j++) {
+				if (togetherRoads[i].roads[j] == roadsThatIntersect[roadIndex]) {
+					return i;
+				}
+			}
+		}
+	}
 };
 
 void Road::setEndPoint(Intersection point) {
 	endPoints.push_back(point);
+}
+
+int getCarsPassing(int t) {
+	return t;
 }
 
 // class written by Robert Piepsney
@@ -112,7 +131,51 @@ public:
 	}
 
 	void doSpreadDensity(vector<vector<int>> currentLightTimes) {
+		// for all the intersections, change density based on cars coming from other intersections of incoming roads
+		for (int i = 0; i < intersections.size(); i++) {
+			for (int j = 0; j < intersections[i].roadDensity.size(); j++) {
+				// for the density of each incoming road
+				// add density for all incoming traffic
+				// remove density for all outgoing traffic
 
+				// outgoing traffic
+				// find time for a road's light
+				int lightIndex = intersections[i].roadIndexToLight(j);
+				int lightTime = currentLightTimes[i][lightIndex];
+				intersections[i].roadDensity[j] -= getCarsPassing(lightTime);
+
+				// incoming traffic
+				// the density leaving from the neighbor in that direction, only from the same direction
+				// assumption that turns will even out
+				Road* thisRoad = intersections[i].roadsThatIntersect[j];
+				Intersection* neighborIntersection;
+				for (int k = 0; k < thisRoad->endPoints.size(); k++) {
+					if (&thisRoad->endPoints[k] != &intersections[i]) {
+						neighborIntersection = &thisRoad->endPoints[k];
+					}
+				}
+
+				int neighborIntersectionIndex;
+				for (int k = 0; k < intersections.size(); k++) {
+					if (neighborIntersection == &intersections[k]) {
+						neighborIntersectionIndex = k;
+					}
+				}
+
+				int neighborParallelRoadIndex;
+				for (int k = 0; k < neighborIntersection->roadsThatIntersect.size(); k++) {
+					if (neighborIntersection->roadsThatIntersect[k]->name == thisRoad->name
+						&& neighborIntersection->roadsThatIntersect[k]->id != thisRoad->id) {
+
+						neighborParallelRoadIndex = k;
+					}
+				}
+
+				int otherLightIndex = intersections[neighborIntersectionIndex].roadIndexToLight(neighborParallelRoadIndex);
+				int otherLightTime = currentLightTimes[neighborIntersectionIndex][otherLightIndex];
+				intersections[i].roadDensity[j] += getCarsPassing(otherLightTime);
+			}
+		}
 	}
 
 	vector<vector<int>> lightOptimization() {
@@ -138,17 +201,18 @@ public:
 				int density = 0;
 				for (int i = 0; i < currentIntersection; i++) {
 					for (int j = 0; j < lightTimes[i].size(); j++) {
-						density += lightTimes[i][j];
+						density += getCarsPassing(lightTimes[i][j]);
 					}
 				}
 
+				// TODO:
 				// for lights not yet determined, use ideal flow
 				// assume rest are in the ideal state
 				// ideal be if 100% of cars were incoming from one way and 100% outgoing another way
 				// as if 100% of cars incoming and outgoing the same 2 directions, with max light time on those, and min light time on the others
 				for (int i = currentIntersection; i < intersections.size() ; i++) {
 					for (int j = 0; j < lightTimes[i].size(); j++) {
-						density += lightTimes[i][j];
+						density += getCarsPassing(lightTimes[i][j]);
 					}
 				}
 				return density;
@@ -251,6 +315,8 @@ void main() {
 	vector<int> densityList = { 1, 1, 1, 1 };
 
 	Intersection intersectionAB = Intersection("A x B", roadList, densityList);
+
+
 
 	map.intersections.push_back(intersectionAB);
 
