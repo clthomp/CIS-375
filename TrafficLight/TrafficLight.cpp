@@ -206,7 +206,7 @@ public:
 
 				minusDensities[i][j] = min(intersections[i].roadDensity[j], minusDensities[i][j]);
 
-				cout << "OK SEE: " << minusDensities[i][j] << endl;
+				//cout << "OK SEE: " << minusDensities[i][j] << endl;
 			}
 		}
 
