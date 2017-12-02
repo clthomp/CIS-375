@@ -15,7 +15,8 @@ using namespace std;
 bool DEBUG_MODE = true;
 
 // all parameter values should be located here
-struct Settings {
+class Settings {
+public:
 	int minimumLightTime = 15;
 	int maximumLightTime = 60;
 
@@ -35,6 +36,14 @@ struct Settings {
 	// more iterations will give more accurate results, but will take longer to compute
 	// each individual iteration should take the same amount of time
 	int iterations = 2;
+
+	void setMin(int value) {
+		minimumLightTime = value;
+	}
+
+	void setMax(int value) {
+		maximumLightTime = value;
+	}
 };
 Settings SETTINGS;
 
@@ -56,14 +65,14 @@ public:
 	float travelTime;
 	int mainLanes;
 	vector<Intersection> endPoints;
-	void setEndPoint(Intersection point); // located following Intersection class definition. Needs to be PUBLIC!
+	void setEndPoint(Intersection point); // located following Intersection class definition
+
 	Road(string name, string id, float travelTime, int mainLanes) {
 		this->name = name;
 		this->id = id;
 		this->travelTime = travelTime;
 		this->mainLanes = mainLanes;
 	}
-	void setEndPoint(Intersection point); // definition located following Intersection class definition
 };
 
 // class written by Robert Piepsney
@@ -86,9 +95,10 @@ public:
 		}
 	};
 	vector<TogetherRoad> togetherRoads;
-		this->name = name;
 
-	Intersection(string name, vector<Road*>roads, vector<int>density) {		//TODO: This needs to call setEndPoint(*this) for all Roads in roadsThatIntersect per Sequence Diagram! --Dwight
+	//TODO: This needs to call setEndPoint(*this) for all Roads in roadsThatIntersect per Sequence Diagram! --Dwight
+	Intersection(string name, vector<Road*>roads, vector<float>density) {
+		this->name = name;
 		roadsThatIntersect = roads;
 		roadDensity = density;
 
@@ -396,6 +406,33 @@ public:
 
 		return resultLightTimes;
 	}
+
+
+	Road * getroadPntr(string name, string id) {	//Returns pointer to matching road stored within roads vector, Nullptr if no match. So that Input can construct Intersections from roads within map!
+													//Requirements and Suggestions from Dwight
+
+
+
+													//TO BE IMPLEMENTED
+
+		return nullptr;
+	}
+
+	bool roadExists(Road * road) { //So that Input creates valid Intersections. Could also be used to prevent duplicates!
+
+								   //TO BE IMPLEMENTED
+
+								   //ONLY COMPARE NAME AND ID
+		return true;
+	}
+
+	/*
+	bool intersectExists(Intersection * intersect) {	//Could be used to prevent Input from creating duplicates!
+
+	//TO BE IMPLEMENTED
+	//ONLY CAMPARE NAME
+	}
+	*/
 };
 
 void printLightTimings(Map map, vector<vector<int>> lightTimings) {
@@ -411,36 +448,11 @@ void printLightTimings(Map map, vector<vector<int>> lightTimings) {
 			cout << "\t" << map.intersections[i].roadsThatIntersect[j]->name << " - " << map.intersections[i].roadsThatIntersect[j]->id << ": " << map.intersections[i].roadDensity[j] << endl;
 		}
 	}
-	Road * getroadPntr(string name, string id) {	//Returns pointer to matching road stored within roads vector, Nullptr if no match. So that Input can construct Intersections from roads within map!
-	//Requirements and Suggestions from Dwight
-
-
-
-		//TO BE IMPLEMENTED
-
-		return nullptr;
-	}
-
-	bool roadExists(Road * road) { //So that Input creates valid Intersections. Could also be used to prevent duplicates!
-
-		//TO BE IMPLEMENTED
-
-		//ONLY COMPARE NAME AND ID
-		return true;
-	}
-
-	/*
-	bool intersectExists(Intersection * intersect) {	//Could be used to prevent Input from creating duplicates!
-
-		//TO BE IMPLEMENTED
-		//ONLY CAMPARE NAME
-	}
-	*/
 };
 
 class Input {	//NEEDS TO BE CONTAINED WITHIN A TRY BLOCK. WILL THROW STRINGS IF PARSING OR ANYTHING ELSE FAILS!
 	
-	typedef void(Map::*paramSet)(int);	//function pointer to Map method to set a specific parameter.
+	typedef void(Settings::*paramSet)(int);	//function pointer to Map method to set a specific parameter.
 
 private:
 	string path;			//path of .csv file (When file needs to be re-opened)
@@ -540,7 +552,8 @@ private:
 			//PARSE IS SUCCESSFUL PAST THIS LINE: (IT IS OK TO THROW OUT OF FUNCTION!)
 
 			//blueprint = new Road(name, id, time);
-			blueprint = new Road(name, time);	//Temporary until merge occurs
+			// TODO: add lanes -- Robert
+			blueprint = new Road(name, id, time, 1);	//Temporary until merge occurs
 			/*
 			if (map->roadExists(blueprint))
 				throw name + " " + id + " is duplicate!";
@@ -570,10 +583,10 @@ private:
 		Road * road;				//holds pointer to road already within Map: DO NOT DELETE!
 		vector<Road*> roadlist;		//holds pointers to roads already within Map: DO NOT DELETE!
 		int lanes;
-		int density;				//Temporary until merge
-		vector<int> densitylist;	//
-		//float density;
-		//vector<float> densitylist;
+		//int density;				//Temporary until merge
+		//vector<int> densitylist;	//
+		float density;
+		vector<float> densitylist;
 		bool go = true;
 		streampos bookmark;
 
@@ -741,13 +754,13 @@ private:
 			
 			input = input.substr(11, input.size());
 			
-			return &Map::setMin;
+			return &Settings::setMin;
 		}
 		else if (input.substr(0, 11) == MAX_PID) {
 
 			input = input.substr(11, input.size());
 
-			return &Map::setMax;
+			return &Settings::setMax;
 		}
 		else {
 			
@@ -775,7 +788,7 @@ private:
 			throw "No space after Parameter Specifier!";
 		strPopFront(input);
 
-		(map->*p)(value(input));
+		(&SETTINGS->*p)(value(input));
 	}
 
 public:
@@ -803,7 +816,7 @@ public:
 };
 
 void main() {
-	Map map;
+	/*Map map;
 	SETTINGS.minimumLightTime = 15;
 	SETTINGS.maximumLightTime = 30;
 
@@ -834,6 +847,7 @@ void main() {
 	printLightTimings(map, lightTimings);
 	
 	cout << "finished computation";
+	*/
 }
 
 inline void strPopFront(string & input) {	//removes first character of 'input'
