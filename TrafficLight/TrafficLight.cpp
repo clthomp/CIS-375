@@ -19,7 +19,7 @@ private:
 	string name;
 	int travelTime;
 	vector<Intersection> endPoints;
-	void setEndPoint(Intersection point); // located following Intersection class definition
+	void setEndPoint(Intersection point); // located following Intersection class definition. Needs to be PUBLIC!
 public:
 	Road(string name, int travelTime) {
 		Road::name = name;
@@ -57,16 +57,15 @@ void Road::setEndPoint(Intersection point) {	//TODO: This needs to ensure endPoi
 	endPoints.push_back(point);
 }
 
-
 class Map {
 private:
 	vector<Road> roads;
-	//vector<Intersection> intersections;
+	//vector<Intersection> intersections; --Dwight
 
 	int minimumLightTime;
 	int maximumLightTime;
 public:
-	vector<Intersection> intersections;
+	vector<Intersection> intersections;	//Should be private --Dwight
 	void importRoads(Road inputRoads) {
 		roads.push_back(inputRoads);
 	}
@@ -177,55 +176,129 @@ public:
 	void setMax(int max) {
 		maximumLightTime = max;
 	}
+
+	//Requirements and Suggestions from Dwight
+
+	void nuke() {	//Clears out all members of roads & intersections vectors. This will need to be called every time Input fails to parse! (When it throws)
+
+		//TO BE IMPLEMENTED
+		//
+		//IMPORTANT:	NOTICED THAT PARAMETERS HAVE BEEN SEPERATED OUT FROM MAP CLASS IN LATEST COMMIT
+		//				IF THIS WILL BE THE PLAN MOVING FORWARD, THEN NUKE() IS NOT NECESSARY, AS MAP CAN JUST BE
+		//				DESTROYED AND RECREATED WITHOUT WORRY OF LOSING SET PARAMETERS!
+	}
+
+	Road * getroadPntr(string name, string id) {	//Returns pointer to matching road stored within roads vector, Nullptr if no match. So that Input can construct Intersections from roads within map!
+
+		//TO BE IMPLEMENTED
+
+		return nullptr;
+	}
+
+	bool roadExists(Road * road) { //So that Input creates valid Intersections. Could also be used to prevent duplicates!
+
+		//TO BE IMPLEMENTED
+		//ONLY COMPARE NAME AND ID
+
+		return true;
+	}
+
+	/*
+	bool intersectExists(Intersection * intersect) {	//Could be used to prevent Input from creating duplicates!
+
+		//TO BE IMPLEMENTED
+		//ONLY CAMPARE NAME
+	}
+	*/
 };
 
-class Input {	//NEEDS TO BE CONTAINED WITHIN A TRY BLOCK. WILL THROW EXCEPTIONS!
+class Input {	//NEEDS TO BE CONTAINED WITHIN A TRY BLOCK. WILL THROW STRINGS IF PARSING OR ANYTHING ELSE FAILS!
 	
-	typedef void(*paramSet)(int);	//function pointer to Map method to set a specific parameter.
+	typedef void(Map::*paramSet)(int);	//function pointer to Map method to set a specific parameter.
 
 private:
+	string path;			//path of .csv file (When file needs to be re-opened)
 	ifstream input;			//input stream of .csv file
 	Map* map;				//pointer to Map object to store Input into
 	
 	string roadname() {		//parse roadname non-terminal of input grammar; returns string of roadname
 
+		char feed[40];	//name limit is 36 + 4 for nullsequence and cleanliness
 
+		input.get(feed, 36, ',');
+
+		return string(feed);
 	}
 
+	string roadid() {		//parse roadid non-terminal of input grammar; returns string of roadid
+
+		char feed[10];	//id limit is 5 + 5 for nullsequence and cleanliness
+
+		input.get(feed, 5, ',');
+
+		return string(feed);
+	}
+
+	//IDENTICAL TO LANE() - WILL CONSIDER MERGING
 	int traveltime() {	//parse traveltime non-terminal of input grammar; returns integer of traveltime
 
+		char feed[15];	//int max is 10 digits + 5 for nullsequence and cleanliness
 
+		input.get(feed, 10, ',');
+
+		return stoi(feed, nullptr);
 	}
 
 	string intersectname() {	//parse intersectname non-terminal of input grammar; returns string of intersection name
 
+		char feed[75];	//Intersection name limit is 72 characters + 3 for nullsequence and cleanliness
 
+		input.get(feed, 72, ',');
+
+		if (string(feed) == "END")	//A valid intersectname is indistinguishable from :END, so there must be an exception
+			throw false;
+
+		return string(feed);
+	}
+	/*
+	float trafficdensity() {	//parse trafficdensity non-terminal of input grammar; returns integer of traffic density
+	
+	char feed[20];	//characters in FLT_MAX + 4 for nullsequence and cleanliness
+
+	input.get(feed, 16, ',');
+
+	return stof(feed, nullptr);
+	*/
+	int trafficdensity() {				//Temporary until merge
+		char feed[15];					//
+		input.get(feed, 10, ',');		//
+		return stoi(feed, nullptr);		//
 	}
 
-	Road * existroadname() {	//parse existroadname() non-terminal of input grammar; returns pointer to Road already within Map* map
-
-
-	}
-
-	int trafficdensity() {	//parse trafficdensity non-terminal of input grammar; returns integer of traffic density
-
-
-	}
-
+	//IDENTICAL TO TRAVELTIME() - WILL CONSIDER MERGING
 	int lane() {	//parse lane non-terminal of input grammar; returns integer of lane number
 
+		char feed[15];	//int max is 10 digits + 5 for nullsequence and cleanliness
 
+		input.get(feed, 10, '\n');
+
+		return stoi(feed, nullptr);
 	}
 
 	bool road() {			//parses road non-terminal of input grammar; returns true if succeeds, false if not
 
 		Road * blueprint;
-		string name;
+		string name, id;
 		int time;
 
 		try {
 
 			name = roadname();
+
+			if (input.get() != ',')
+				return false;
+
+			id = roadid();
 
 			if (input.get() != ',')
 				return false;
@@ -238,12 +311,24 @@ private:
 			if (input.get() != '\n')
 				return false;
 
-			blueprint = new Road(name, time);
+			//PARSE IS SUCCESSFUL PAST THIS LINE: (IT IS OK TO THROW OUT OF FUNCTION!)
 
-			map->importRoads(*blueprint);
+			//blueprint = new Road(name, id, time);
+			blueprint = new Road(name, time);	//Temporary until merge occurs
+			/*
+			if (map->roadExists(blueprint))
+				throw name + " " + id + " is duplicate!";
+			*/
+			map->importRoads(*blueprint);	//DOES NOT CURRENTLY CHECK IF ROAD ALREADY EXISTS
 
 			delete blueprint;
 		}
+		/*
+		catch (string s){	//If duplicate road is found.
+
+			throw;
+		}
+		*/
 		catch (...) {
 
 			return false;
@@ -255,20 +340,27 @@ private:
 	bool intersection() {	//parses intersection non-terminal of input grammar; returns true if succeeds, false if not
 
 		Intersection * blueprint;
-		string name;
-		Road * road;
-		vector<Road*> roadlist;
-		int density, lanes;
-		vector<int> densitylist;
-		bool go;
+		string iname, rname, rid;
+		Road * road;				//holds pointer to road already within Map: DO NOT DELETE!
+		vector<Road*> roadlist;		//holds pointers to roads already within Map: DO NOT DELETE!
+		int lanes;
+		int density;				//Temporary until merge
+		vector<int> densitylist;	//
+		//float density;
+		//vector<float> densitylist;
+		bool go = true;
 		streampos bookmark;
 
 		try {
 
-			name = intersectname();
-
-			if (input.get() != ',')
+			if (input.get() != ':')
 				return false;
+
+			iname = intersectname();
+
+			for (int i = 0; i < 3; i++)
+				if (input.get() != ',')
+					return false;
 
 			if (input.get() != '\n')
 				return false;
@@ -278,7 +370,13 @@ private:
 				bookmark = input.tellg();	//saves streampos of the current line
 				
 				try {
-					road = existroadname();
+
+					rname = roadname();
+
+					if (input.get() != ',')
+						throw false;
+
+					rid = roadid();
 
 					if (input.get() != ',')
 						throw false;
@@ -293,8 +391,19 @@ private:
 					if (input.get() != '\n')
 						throw false;
 
+					//PARSE IS SUCCESSFUL PAST THIS LINE: (IT IS OK TO THROW OUT OF FUNCTION!)
+
+					road = map->getroadPntr(rname, rid);
+
+					//if (road == nullptr)
+					//	throw rname + " " + rid + " is not defined!";
+
 					roadlist.push_back(road);
 					densitylist.push_back(density);
+
+				}
+				catch (string s) {
+					throw;
 				}
 				catch (...) {
 					go = false;
@@ -302,13 +411,23 @@ private:
 
 			} while (go);
 
+			input.close();
+			input.open(path);
 			input.seekg(bookmark);	//restores saved streampos in case try block throws within the line
 
-			blueprint = new Intersection(name, roadlist, densitylist);
+			blueprint = new Intersection(iname, roadlist, densitylist);
 
-			map->importIntersections(*blueprint);
+			/*
+			if (map->intersectExists(blueprint))
+				throw iname + " is duplicate!";
+			*/
+			map->importIntersections(*blueprint);	//DOES NOT CURRENTLY CHECK IF INTERSECTION ALREADY EXISTS
 
 			delete blueprint;
+		}
+		catch (string s) {
+			
+			throw;
 		}
 		catch (...) {
 
@@ -326,7 +445,7 @@ private:
 
 		input.getline(feed, 10);
 
-		if (feed != ":ROADS,,")
+		if (string(feed) != ":ROADS,,,")
 			throw "Input file does not contain ':ROADS'!";
 
 		do {
@@ -337,6 +456,8 @@ private:
 
 		} while (go);
 
+		input.close();
+		input.open(path);
 		input.seekg(bookmark);	//restores saved streampos in case road() failed within the line
 	}
 
@@ -348,7 +469,7 @@ private:
 
 		input.getline(feed, 20);
 
-		if (feed != ":INTERSECTIONS,,")
+		if (string(feed) != ":INTERSECTIONS,,,")
 			throw "Input file does not contain ':INTERSECTIONS'!";
 		
 		do {
@@ -359,6 +480,8 @@ private:
 
 		} while (go);
 
+		input.close();
+		input.open(path);
 		input.seekg(bookmark);	//restores saved streampos in case intersection() failed within the line
 	}
 
@@ -375,14 +498,14 @@ private:
 
 			input.getline(feed, 10);
 
-			if (feed != ":BEGIN,,")
+			if (string(feed) != ":BEGIN,,,")
 				throw "Input file does not contain ':BEGIN'!";
 
 			data();
 
 			input.getline(feed, 10);
 
-			if (feed != ":END,,")
+			if (string(feed) != ":END,,,")
 				throw "Input file does not contain ':END'!";
 	}
 
@@ -392,13 +515,13 @@ private:
 			
 			input = input.substr(11, input.size());
 			
-			return map->setMin;
+			return &Map::setMin;
 		}
 		else if (input.substr(0, 11) == MAX_PID) {
 
 			input = input.substr(11, input.size());
 
-			return map->setMax;
+			return &Map::setMax;
 		}
 		else {
 			
@@ -410,7 +533,7 @@ private:
 	
 		try {
 
-			return stoi(input);
+			return stoi(input, nullptr);
 		}
 		catch (...) {
 
@@ -426,18 +549,24 @@ private:
 			throw "No space after Parameter Specifier!";
 		strPopFront(input);
 
-		p(value(input));
+		(map->*p)(value(input));
 	}
 
 public:
 	Input(string inputPath, Map &m) {								//constructor that takes filepath of .csv file and Map object to store input into
+
+		path = inputPath;
 
 		input.exceptions(ifstream::failbit | ifstream::badbit);		//sets input to throw exceptions for logical or read errors
 		input.open(inputPath);
 
 		map = &m;
 	}
-
+	~Input()
+	{
+		if (input.is_open())
+			input.close();
+	}
 	void paramQuery(string input) {		//to begin parsing of parameter query 'input'
 
 		if (input == CALC_INIT)
