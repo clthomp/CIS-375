@@ -1,3 +1,10 @@
+/*
+
+CenterLineImport-reduced.csv
+--calculate
+
+*/
+
 #include <iostream>
 #include <string>
 #include <fstream> //for Input and Output
@@ -12,13 +19,15 @@
 using namespace std;
 
 // allows printing debug messages
-bool DEBUG_MODE = true;
+bool DEBUG_MODE = false;
 
 // all parameter values should be located here
 class Settings {
 public:
 	int minimumLightTime = 15;
-	int maximumLightTime = 60;
+	int maximumLightTime = 45;
+	// should be between min and max with regards to being divisible by lightTimeTestValueChange
+	int defaultLightValue = 30;
 
 	// time it takes before cars begin moving after a light turns green
 	float carStartupTime = 3;
@@ -35,15 +44,17 @@ public:
 	// how many times to run optimization
 	// more iterations will give more accurate results, but will take longer to compute
 	// each individual iteration should take the same amount of time
-	int iterations = 2;
+	int iterations = 1;
 
-	void setMin(int value) {
-		minimumLightTime = value;
-	}
-
-	void setMax(int value) {
-		maximumLightTime = value;
-	}
+	void setMin(int value) { minimumLightTime = value; }
+	void setMax(int value) { maximumLightTime = value; }
+	void setDefaultLightValue(int value) { defaultLightValue = value; }
+	void setCarStartupTime(int value) { carStartupTime = value; }
+	void setCarPassingRate(int value) { carPassingRate = value; }
+	void setDensityToCarRatio(int value) { densityToCarRatio = value; }
+	void setTravelTimeDensityMultiplier(int value) { travelTimeDensityMultiplier = value; }
+	void setLightTimeTestValueChange(int value) { lightTimeTestValueChange = value; }
+	void setIterations(int value) { iterations = value; }
 };
 Settings SETTINGS;
 
@@ -52,6 +63,14 @@ const string PARAM_DELIM = "--";						//string to identify keyboard input as a p
 const string CALC_INIT = PARAM_DELIM + "calculate";		//string to initiate calculation in parser
 const string MIN_PID = PARAM_DELIM + "mintiming";		//string for parser to identify request for min timing change
 const string MAX_PID = PARAM_DELIM + "maxtiming";		//string for parser to identify request for max timing change
+const string DEFAULT_PID = PARAM_DELIM + "default";
+const string STARTUP_PID = PARAM_DELIM + "startup";
+const string PASSING_PID = PARAM_DELIM + "passing";
+const string DENSITY_PID = PARAM_DELIM + "density";
+const string TRAVEL_PID = PARAM_DELIM + "travel";
+const string CHANGE_PID = PARAM_DELIM + "change";
+const string ITERATIONS_PID = PARAM_DELIM + "iterations";
+const int PARAM_NUM = 9;									//the amount of user-controlled parameters; defined above
 
 class Intersection;
 
@@ -63,15 +82,13 @@ public:
 	string name;
 	string id;
 	float travelTime;
-	int mainLanes;
 	vector<Intersection> endPoints;
 	void setEndPoint(Intersection point); // located following Intersection class definition
 
-	Road(string name, string id, float travelTime, int mainLanes) {
+	Road(string name, string id, float travelTime) {
 		this->name = name;
 		this->id = id;
 		this->travelTime = travelTime;
-		this->mainLanes = mainLanes;
 	}
 };
 
@@ -82,6 +99,7 @@ private:
 public:
 	vector<Road*> roadsThatIntersect;
 	string name;
+	vector<int> laneList;
 	vector<float> roadDensity; // parallel to roadsThatIntersect
 
 	// used to store which 2 roads have the same name
@@ -96,11 +114,15 @@ public:
 	};
 	vector<TogetherRoad> togetherRoads;
 
-	//TODO: This needs to call setEndPoint(*this) for all Roads in roadsThatIntersect per Sequence Diagram! --Dwight
-	Intersection(string name, vector<Road*>roads, vector<float>density) {
+	Intersection(string name, vector<Road*>roads, vector<int> laneList, vector<float>density) {
 		this->name = name;
 		roadsThatIntersect = roads;
+		this->laneList = laneList;
 		roadDensity = density;
+
+		for (int i = 0; i < roadsThatIntersect.size(); i++) {
+			roadsThatIntersect[i]->setEndPoint(*this);
+		}
 
 		findTogetherRoads();
 	}
@@ -184,15 +206,15 @@ public:
 
 			currentChanges[current] += SETTINGS.lightTimeTestValueChange;
 			// don't allow any changes above max light time
-			if (currentChanges[current] <= SETTINGS.maximumLightTime) {
+			//if (currentChanges[current] <= SETTINGS.maximumLightTime) {
 				getLightChanges(currentChanges, current + 1);
-			}
+			//}
 
 			currentChanges[current] -= SETTINGS.lightTimeTestValueChange * 2;
 			// don't allow any changes below min light time
-			if (currentChanges[current] >= SETTINGS.minimumLightTime) {
+			//if (currentChanges[current] >= SETTINGS.minimumLightTime) {
 				getLightChanges(currentChanges, current + 1);
-			}
+			//}
 		}
 	}
 
@@ -220,7 +242,7 @@ public:
 				// outgoing traffic
 				// expected density removed
 				minusDensities[i][j] = getCarsPassing(lightTime) * SETTINGS.densityToCarRatio *
-					float(thisRoad->mainLanes) /
+					float(intersections[i].laneList[j]) /
 					(thisRoad->travelTime * SETTINGS.travelTimeDensityMultiplier);
 
 				minusDensities[i][j] = min(intersections[i].roadDensity[j], minusDensities[i][j]);
@@ -242,7 +264,7 @@ public:
 
 				// outgoing traffic
 				// expected density removed
-				cout << " LETS SEE: " << intersections[i].roadDensity[j] << " - " << minusDensities[i][j] << endl;
+				//cout << " LETS SEE: " << intersections[i].roadDensity[j] << " - " << minusDensities[i][j] << endl;
 				intersections[i].roadDensity[j] -= minusDensities[i][j];
 
 				// incoming traffic
@@ -311,7 +333,7 @@ public:
 				float density = 0;
 				for (int i = 0; i < currentIntersection; i++) {
 					for (int j = 0; j < lightTimes[i].size(); j++) {
-						density += getCarsPassing(lightTimes[i][j]) * intersections[i].roadsThatIntersect[j]->mainLanes;
+						density += getCarsPassing(lightTimes[i][j]) * intersections[i].laneList[j];
 					}
 				}
 
@@ -321,7 +343,7 @@ public:
 				// ideal would be if each light were max time and there was an exact amount of cars to move through the light for max light time
 				for (int i = currentIntersection; i < intersections.size() ; i++) {
 					for (int j = 0; j < lightTimes[i].size(); j++) {
-						density += getCarsPassing(SETTINGS.maximumLightTime) * intersections[i].roadsThatIntersect[j]->mainLanes;
+						density += getCarsPassing(SETTINGS.maximumLightTime) * intersections[i].laneList[j];
 					}
 				}
 				return density * SETTINGS.densityToCarRatio;
@@ -339,7 +361,8 @@ public:
 
 		// set starter values as average between min and max allowed
 		vector<vector<int>> initialLightTimes;
-		float averageLightTime = (SETTINGS.minimumLightTime + SETTINGS.maximumLightTime) / 2;
+		//float averageLightTime = (SETTINGS.minimumLightTime + SETTINGS.maximumLightTime) / 2;
+		float averageLightTime = SETTINGS.defaultLightValue;
 		for (int i = 0; i < intersections.size(); i++) {
 			vector<int> singleLightTime(intersections[i].togetherRoads.size(), averageLightTime); /*number of light times as connected roads*/
 			initialLightTimes.push_back(singleLightTime);
@@ -351,6 +374,16 @@ public:
 
 		vector<vector<int>> resultLightTimes = initial.lightTimes;
 
+		vector<vector<vector<int>>> allChangeSets;
+		for (int i = 0; i < intersections.size(); i++) {
+			int lightCount = initial.lightTimes[i].size();
+			vector<int> changesSet(lightCount, 0);
+			tempSolutions.clear();
+			// OPTIMIZE: calculate the deltas once and reuse them
+			getLightChanges(changesSet, 0); //backtracking  // results explained at that function
+			allChangeSets.push_back(tempSolutions);
+		}
+
 		if (intersections.size() > 0) {
 			for (int iter = 0; iter < SETTINGS.iterations; iter++) {
 				while (!pq.empty()) {
@@ -360,22 +393,36 @@ public:
 					// add more nodes to pq
 					// ensures it hasn't passed max number of intersections
 					if (currentNode.currentIntersection < currentNode.lightTimes.size()) {
-						int lightCount = currentNode.lightTimes[currentNode.currentIntersection].size();
-						vector<int> changesSet(lightCount, 0);
-						tempSolutions.clear();
-						getLightChanges(changesSet, 0); //backtracking  // results explained at that function
+						//int lightCount = currentNode.lightTimes[currentNode.currentIntersection].size();
+						//vector<int> changesSet(lightCount, 0);
+						//tempSolutions.clear();
+						// OPTIMIZE: calculate the deltas once and reuse them
+						//getLightChanges(changesSet, 0); //backtracking  // results explained at that function
 						if (DEBUG_MODE) {
-							cout << "Size of thing: " << tempSolutions.size() << endl;
+							cout << "Size of thing: " << allChangeSets[currentNode.currentIntersection].size() << endl;
+							cout << "Total Nodes: " << totalNodes << endl;
+							cout << "Current Intersection: " << currentNode.currentIntersection << endl;
 						}
 						// place each possible solution into a Node in the PQ
-						for (int i = 0; i < tempSolutions.size(); i++) {
+						//cout << "SIZE" << tempSolutions.size() << endl;
+
+						for (int i = 0; i < allChangeSets[currentNode.currentIntersection].size(); i++) {
 							vector<vector<int>> newLightTimes = currentNode.lightTimes;
-							for (int j = 0; j < tempSolutions[i].size(); j++) {
-								newLightTimes[currentNode.currentIntersection][j] += tempSolutions[i][j];
+							bool valid = true;
+							for (int j = 0; j < allChangeSets[currentNode.currentIntersection][i].size(); j++) {
+								newLightTimes[currentNode.currentIntersection][j] += allChangeSets[currentNode.currentIntersection][i][j];
+								if (newLightTimes[currentNode.currentIntersection][j] < SETTINGS.minimumLightTime
+									|| newLightTimes[currentNode.currentIntersection][j] > SETTINGS.maximumLightTime) {
+									valid = false;
+									//cout << "NOT VALID" << endl;
+								}
 							}
-							Node newNode(this, intersections, newLightTimes, currentNode.currentIntersection + 1);
-							pq.push(newNode);
-							totalNodes++;
+							if (valid) {
+								//cout << "YES VALID" << endl;
+								Node newNode(this, intersections, newLightTimes, currentNode.currentIntersection + 1);
+								pq.push(newNode);
+								totalNodes++;
+							}
 						}
 					}
 
@@ -385,7 +432,12 @@ public:
 					if (currentNode.currentIntersection == intersections.size() && pq.top().potentialFlow <= currentNode.potentialFlow) {
 						// lightTimes belonging to the best node
 						resultLightTimes = currentNode.lightTimes;
+						//cout << "\tYA OK BUT YES HERE WE GO" << endl;
 						break;
+					} else {
+						//cout << "\tya ok but no try again" << endl;
+						//cout << currentNode.currentIntersection << " vs " << intersections.size() << endl;
+						//cout << pq.top().potentialFlow << " > " << currentNode.potentialFlow << endl;
 					}
 				}
 
@@ -407,32 +459,39 @@ public:
 		return resultLightTimes;
 	}
 
-
+	// returns a pointer to a road with the given name and id, nullptr if none exists
 	Road * getroadPntr(string name, string id) {	//Returns pointer to matching road stored within roads vector, Nullptr if no match. So that Input can construct Intersections from roads within map!
 													//Requirements and Suggestions from Dwight
-
-
-
-													//TO BE IMPLEMENTED
+		for (int i = 0; i < roads.size(); i++) {
+			if (roads[i].name == name && roads[i].id == id) {
+				return &roads[i];
+			}
+		}
 
 		return nullptr;
 	}
 
-	bool roadExists(Road * road) { //So that Input creates valid Intersections. Could also be used to prevent duplicates!
+	// compares name and id of Intersection to check if it already exists
+	bool roadExists(Road * road) {
+		for (int i = 0; i < roads.size(); i++) {
+			if (roads[i].name == road->name && roads[i].id == road->id) {
+				return true;
+			}
+		}
 
-								   //TO BE IMPLEMENTED
-
-								   //ONLY COMPARE NAME AND ID
-		return true;
+		return false;
 	}
 
-	/*
-	bool intersectExists(Intersection * intersect) {	//Could be used to prevent Input from creating duplicates!
+	// compares name of Intersection to check if it already exists
+	bool intersectExists(Intersection * intersection) {
+		for (int i = 0; i < intersections.size(); i++) {
+			if (intersections[i].name == intersection->name) {
+				return true;
+			}
+		}
 
-	//TO BE IMPLEMENTED
-	//ONLY CAMPARE NAME
+		return false;
 	}
-	*/
 };
 
 void printLightTimings(Map map, vector<vector<int>> lightTimings) {
@@ -547,23 +606,19 @@ private:
 
 			//PARSE IS SUCCESSFUL PAST THIS LINE: (IT IS OK TO THROW OUT OF FUNCTION!)
 
-			//blueprint = new Road(name, id, time);
-			// TODO: add lanes -- Robert
-			blueprint = new Road(name, id, time, 1);	//Temporary until merge occurs
-			/*
+			blueprint = new Road(name, id, time);
+			
 			if (map->roadExists(blueprint))
-				throw name + " " + id + " is duplicate!";
-			*/
+				throw string(name + " " + id + " is duplicate!");
+			
 			map->importRoads(*blueprint);	//DOES NOT CURRENTLY CHECK IF ROAD ALREADY EXISTS
 
 			delete blueprint;
 		}
-		/*
 		catch (string s){	//If duplicate road is found.
 
 			throw;
 		}
-		*/
 		catch (...) {
 
 			return false;
@@ -579,6 +634,7 @@ private:
 		Road * road;				//holds pointer to road already within Map: DO NOT DELETE!
 		vector<Road*> roadlist;		//holds pointers to roads already within Map: DO NOT DELETE!
 		int lanes;
+		vector<int>lanelist;
 		float density;
 		vector<float> densitylist;
 		bool go = true;
@@ -628,10 +684,11 @@ private:
 
 					road = map->getroadPntr(rname, rid);
 
-					//if (road == nullptr)
-					//	throw rname + " " + rid + " is not defined!";
+					if (road == nullptr)
+						throw string(rname + " " + rid + " is not defined!");
 
 					roadlist.push_back(road);
+					lanelist.push_back(lanes);
 					densitylist.push_back(density);
 
 				}
@@ -648,12 +705,11 @@ private:
 			input.open(path);
 			input.seekg(bookmark);	//restores saved streampos in case try block throws within the line
 
-			blueprint = new Intersection(iname, roadlist, densitylist);
+			blueprint = new Intersection(iname, roadlist, lanelist, densitylist);
 
-			/*
 			if (map->intersectExists(blueprint))
-				throw iname + " is duplicate!";
-			*/
+				throw string(iname + " is duplicate!");
+			
 			map->importIntersections(*blueprint);	//DOES NOT CURRENTLY CHECK IF INTERSECTION ALREADY EXISTS
 
 			delete blueprint;
@@ -743,23 +799,25 @@ private:
 	}
 
 	paramSet pid(string & input) {		//returns function pointer of proper Map method given input
-	
-		if (input.substr(0, 11) == MIN_PID) {
-			
-			input = input.substr(11, input.size());
-			
-			return &Settings::setMin;
-		}
-		else if (input.substr(0, 11) == MAX_PID) {
 
-			input = input.substr(11, input.size());
+		const string pid[PARAM_NUM] = { MIN_PID, MAX_PID, DEFAULT_PID, STARTUP_PID, PASSING_PID, 
+										DENSITY_PID, TRAVEL_PID, CHANGE_PID, ITERATIONS_PID };
+		const paramSet func[PARAM_NUM] = {	&Settings::setMin, &Settings::setMax, &Settings::setDefaultLightValue, 
+											&Settings::setCarStartupTime, &Settings::setCarPassingRate, 
+											&Settings::setDensityToCarRatio, &Settings::setTravelTimeDensityMultiplier, 
+											&Settings::setLightTimeTestValueChange, &Settings::setIterations };
+		
+		for (int i = 0; i < PARAM_NUM; i++)
+		{
+			if (input.substr(0, pid[i].size()) == pid[i]) {
 
-			return &Settings::setMax;
+				input = input.substr(pid[i].size(), input.size());
+
+				return func[i];
+			}
 		}
-		else {
-			
-			throw string("Invalid Parameter Specifier!");
-		}
+
+		throw string("Invalid Parameter Specifier!");
 	}
 
 	int value(string & input) {		//returns int if input can be converted into one
@@ -892,9 +950,8 @@ void main() {
 	cout << "finished computation";
 	*/
 
-	/*
-	HOW TO USE INPUT:
-	
+	//HOW TO USE INPUT:
+  
 	Map map;			//to store Input data
 	string keyin;		//to store keyboard input
 	bool fail;			//to exit input loop
@@ -905,7 +962,7 @@ void main() {
 		fail = false;									//Assume all will be well
 		input = nullptr;								//In case Input object fails at construction
 
-		cout << "Enter input filepath: ";				//prompt user for Filepath
+		cout << "Enter input filepath: ";				//prompt user for Filepath (must not have spaces)
 
 		getline(cin, keyin);							//take keyboard input; getline is best because it will incorporate spaces!
 
@@ -937,7 +994,11 @@ void main() {
 	} while (fail);										//Allow user to retry if file fails
 		
 	//INPUT IS FINISHED AND SUCCESSFUL PAST THIS LINE. MAP CALCULATIONS CAN NOW BE INITIALIZED AND OUTPUT MADE
-	*/
+
+	vector<vector<int>> lightTimings = map.lightOptimization();
+	printLightTimings(map, lightTimings);
+
+	cout << "finished computation";
 }
 
 inline void strPopFront(string & input) {	//removes first character of 'input'
