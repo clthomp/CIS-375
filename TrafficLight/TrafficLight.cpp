@@ -858,7 +858,7 @@ void main() {
 
 	/*
 	HOW TO USE INPUT:
-
+	
 	Map map;			//to store Input data
 	string keyin;		//to store keyboard input
 	bool fail;			//to exit input loop
@@ -871,7 +871,7 @@ void main() {
 
 		cout << "Enter input filepath: ";				//prompt user for Filepath
 
-		cin >> keyin;									//take keyboard input
+		getline(cin, keyin);							//take keyboard input; getline is best because it will incorporate spaces!
 
 		try {											//Input will throw if parsing fails
 
@@ -879,7 +879,7 @@ void main() {
 
 			do {										//Allow user as many queries as needed. (Parameter changes or calculation initialization)
 
-				cin >> keyin;							//take keyboard input
+				getline(cin, keyin);					//take keyboard input; getline is best because it will incorporate spaces!
 
 			} while (input->paramQuery(keyin));			//have Input object query keyin; if more queries can be made, it will return true and repeat the loop.
 		}
@@ -901,7 +901,6 @@ void main() {
 	} while (fail);										//Allow user to retry if file fails
 		
 	//INPUT IS FINISHED AND SUCCESSFUL PAST THIS LINE. MAP CALCULATIONS CAN NOW BE INITIALIZED AND OUTPUT MADE
-
 	*/
 }
 
