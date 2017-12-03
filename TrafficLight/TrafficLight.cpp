@@ -66,10 +66,11 @@ const string MAX_PID = PARAM_DELIM + "maxtiming";		//string for parser to identi
 const string DEFAULT_PID = PARAM_DELIM + "default";
 const string STARTUP_PID = PARAM_DELIM + "startup";
 const string PASSING_PID = PARAM_DELIM + "passing";
-const string DENSITY = PARAM_DELIM + "density";
+const string DENSITY_PID = PARAM_DELIM + "density";
 const string TRAVEL_PID = PARAM_DELIM + "travel";
 const string CHANGE_PID = PARAM_DELIM + "change";
 const string ITERATIONS_PID = PARAM_DELIM + "iterations";
+const int PARAM_NUM = 9;									//the amount of user-controlled parameters; defined above
 
 class Intersection;
 
@@ -798,23 +799,25 @@ private:
 	}
 
 	paramSet pid(string & input) {		//returns function pointer of proper Map method given input
-	
-		if (input.substr(0, 11) == MIN_PID) {
-			
-			input = input.substr(11, input.size());
-			
-			return &Settings::setMin;
-		}
-		else if (input.substr(0, 11) == MAX_PID) {
 
-			input = input.substr(11, input.size());
+		const string pid[PARAM_NUM] = { MIN_PID, MAX_PID, DEFAULT_PID, STARTUP_PID, PASSING_PID, 
+										DENSITY_PID, TRAVEL_PID, CHANGE_PID, ITERATIONS_PID };
+		const paramSet func[PARAM_NUM] = {	&Settings::setMin, &Settings::setMax, &Settings::setDefaultLightValue, 
+											&Settings::setCarStartupTime, &Settings::setCarPassingRate, 
+											&Settings::setDensityToCarRatio, &Settings::setTravelTimeDensityMultiplier, 
+											&Settings::setLightTimeTestValueChange, &Settings::setIterations };
+		
+		for (int i = 0; i < PARAM_NUM; i++)
+		{
+			if (input.substr(0, pid[i].size()) == pid[i]) {
 
-			return &Settings::setMax;
+				input = input.substr(pid[i].size(), input.size());
+
+				return func[i];
+			}
 		}
-		else {
-			
-			throw string("Invalid Parameter Specifier!");
-		}
+
+		throw string("Invalid Parameter Specifier!");
 	}
 
 	int value(string & input) {		//returns int if input can be converted into one
@@ -925,7 +928,7 @@ void main() {
 
 		cout << "Enter input filepath: ";				//prompt user for Filepath (must not have spaces)
 
-		cin >> keyin;									//take keyboard input
+		getline(cin, keyin);							//take keyboard input; getline is best because it will incorporate spaces!
 
 		try {											//Input will throw if parsing fails
 
@@ -933,7 +936,7 @@ void main() {
 
 			do {										//Allow user as many queries as needed. (Parameter changes or calculation initialization)
 
-				cin >> keyin;							//take keyboard input
+				getline(cin, keyin);					//take keyboard input; getline is best because it will incorporate spaces!
 
 			} while (input->paramQuery(keyin));			//have Input object query keyin; if more queries can be made, it will return true and repeat the loop.
 		}
