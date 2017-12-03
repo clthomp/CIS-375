@@ -66,10 +66,11 @@ const string MAX_PID = PARAM_DELIM + "maxtiming";		//string for parser to identi
 const string DEFAULT_PID = PARAM_DELIM + "default";
 const string STARTUP_PID = PARAM_DELIM + "startup";
 const string PASSING_PID = PARAM_DELIM + "passing";
-const string DENSITY = PARAM_DELIM + "density";
+const string DENSITY_PID = PARAM_DELIM + "density";
 const string TRAVEL_PID = PARAM_DELIM + "travel";
 const string CHANGE_PID = PARAM_DELIM + "change";
 const string ITERATIONS_PID = PARAM_DELIM + "iterations";
+const int PARAM_NUM = 9;									//the amount of user-controlled parameters; defined above
 
 class Intersection;
 
@@ -798,23 +799,25 @@ private:
 	}
 
 	paramSet pid(string & input) {		//returns function pointer of proper Map method given input
-	
-		if (input.substr(0, 11) == MIN_PID) {
-			
-			input = input.substr(11, input.size());
-			
-			return &Settings::setMin;
-		}
-		else if (input.substr(0, 11) == MAX_PID) {
 
-			input = input.substr(11, input.size());
+		const string pid[PARAM_NUM] = { MIN_PID, MAX_PID, DEFAULT_PID, STARTUP_PID, PASSING_PID, 
+										DENSITY_PID, TRAVEL_PID, CHANGE_PID, ITERATIONS_PID };
+		const paramSet func[PARAM_NUM] = {	&Settings::setMin, &Settings::setMax, &Settings::setDefaultLightValue, 
+											&Settings::setCarStartupTime, &Settings::setCarPassingRate, 
+											&Settings::setDensityToCarRatio, &Settings::setTravelTimeDensityMultiplier, 
+											&Settings::setLightTimeTestValueChange, &Settings::setIterations };
+		
+		for (int i = 0; i < PARAM_NUM; i++)
+		{
+			if (input.substr(0, pid[i].size()) == pid[i]) {
 
-			return &Settings::setMax;
+				input = input.substr(pid[i].size(), input.size());
+
+				return func[i];
+			}
 		}
-		else {
-			
-			throw string("Invalid Parameter Specifier!");
-		}
+
+		throw string("Invalid Parameter Specifier!");
 	}
 
 	int value(string & input) {		//returns int if input can be converted into one
@@ -846,7 +849,7 @@ public:
 		path = inputPath;
 		
 		input.exceptions(ifstream::failbit | ifstream::badbit);		//sets input to throw exceptions for logical or read errors
-		input.open(inputPath);
+		input.open(path);
 
 		map = &m;
 	}
@@ -874,6 +877,42 @@ public:
 			}
 			return true;
 		}
+	}
+};
+
+// class written by Dwight Herman
+class Output {	//NEEDS TO BE CONTAINED WITHIN A TRY BLOCK. WILL THROW IF OUTPUT FAILS!
+
+private:
+	Map * map;						//pointer to Map object to pull data from
+	string path;					//path to output .csv file
+	ofstream output;				//output stream to .csv file
+public:
+	Output(string outpath, Map &m) {		//constructor that takes filepath of .csv file to store data into and map object to pulldata from
+
+		path = outpath;
+
+		output.exceptions(ifstream::failbit | ifstream::badbit);		//sets input to throw exceptions for logical or read errors
+		output.open(path, ofstream::app);								//appends output
+
+		map = &m;
+	}
+	void outputToFilePath(vector<vector<int>> cycleTimings) {			//prints results to filestream output
+
+		output << ":BEGIN," << endl << ":INTERSECTIONS," << endl;
+
+		for (int i = 0; i < cycleTimings.size(); i++) {
+
+			output << ':' << map->intersections[i].name << ',' << endl;
+
+			for (int j = 0; j < cycleTimings[i].size(); j++) {
+
+				output << map->intersections[i].togetherRoads[j].name << ',' << cycleTimings[i][j] << endl;
+
+			}
+		}
+
+		output << ":END" << endl;
 	}
 };
 
@@ -912,28 +951,29 @@ void main() {
 	*/
 
 	//HOW TO USE INPUT:
-
+  
 	Map map;			//to store Input data
 	string keyin;		//to store keyboard input
 	bool fail;			//to exit input loop
 	Input * input;		//pointer to input; so Input object can be recreated easily.
+	Output * output;	//pointer to output; so Output object can be recreated easily.
 	
 	do													
 	{	
 		fail = false;									//Assume all will be well
 		input = nullptr;								//In case Input object fails at construction
 
-		cout << "Enter input filepath: ";				//prompt user for Filepath (must not have spaces)
+		cout << "Enter input filepath: ";				//prompt user for Filepath
 
-		cin >> keyin;									//take keyboard input
+		getline(cin, keyin);							//take keyboard input; getline is best because it will incorporate spaces!
 
 		try {											//Input will throw if parsing fails
 
-			input = new Input(keyin, map);				//create new Input object with userentered filepath
+			input = new Input(keyin, map);				//create new Input object with user entered filepath
 
 			do {										//Allow user as many queries as needed. (Parameter changes or calculation initialization)
 
-				cin >> keyin;							//take keyboard input
+				getline(cin, keyin);					//take keyboard input; getline is best because it will incorporate spaces!
 
 			} while (input->paramQuery(keyin));			//have Input object query keyin; if more queries can be made, it will return true and repeat the loop.
 		}
@@ -957,9 +997,38 @@ void main() {
 	//INPUT IS FINISHED AND SUCCESSFUL PAST THIS LINE. MAP CALCULATIONS CAN NOW BE INITIALIZED AND OUTPUT MADE
 
 	vector<vector<int>> lightTimings = map.lightOptimization();
-	printLightTimings(map, lightTimings);
+	printLightTimings(map, lightTimings);				//for debug?
 
-	cout << "finished computation";
+	do
+	{
+		fail = false;									//Assume all will be well
+		output = nullptr;								//In case Output object fails at construction
+
+		cout << "Enter output filepath: ";				//prompt user for Filepath
+
+		getline(cin, keyin);							//take keyboard input; getline is best because it will incorporate spaces!
+
+		try {
+
+			output = new Output(keyin, map);			//create new Output object with user entered filepath
+
+			output->outputToFilePath(lightTimings);		//attempt to output results to file
+
+		}
+		catch (...) {									//To catch all exceptions, mostly from std library functions
+
+			cout << "Error while writing file!" << endl;//Uknown Error
+
+			fail = true;								//set output loop to repeat
+		}
+
+		delete output;
+
+	} while (fail);
+
+	//OUTPUT IS FINISHED AND SUCCESSFUL PAST THIS LINE.
+
+	cout << "finished computation" << endl;
 }
 
 inline void strPopFront(string & input) {	//removes first character of 'input'
