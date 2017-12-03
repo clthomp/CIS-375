@@ -554,9 +554,7 @@ private:
 
 			//PARSE IS SUCCESSFUL PAST THIS LINE: (IT IS OK TO THROW OUT OF FUNCTION!)
 
-			//blueprint = new Road(name, id, time);
-			// TODO: add lanes -- Robert
-			blueprint = new Road(name, id, time, 1);
+			blueprint = new Road(name, id, time);
 			
 			if (map->roadExists(blueprint))
 				throw string(name + " " + id + " is duplicate!");
@@ -584,6 +582,7 @@ private:
 		Road * road;				//holds pointer to road already within Map: DO NOT DELETE!
 		vector<Road*> roadlist;		//holds pointers to roads already within Map: DO NOT DELETE!
 		int lanes;
+		vector<int>lanelist;
 		float density;
 		vector<float> densitylist;
 		bool go = true;
@@ -637,6 +636,7 @@ private:
 						throw string(rname + " " + rid + " is not defined!");
 
 					roadlist.push_back(road);
+					lanelist.push_back(lanes);
 					densitylist.push_back(density);
 
 				}
@@ -653,7 +653,7 @@ private:
 			input.open(path);
 			input.seekg(bookmark);	//restores saved streampos in case try block throws within the line
 
-			blueprint = new Intersection(iname, roadlist, laneList, densitylist);
+			blueprint = new Intersection(iname, roadlist, lanelist, densitylist);
 
 			if (map->intersectExists(blueprint))
 				throw string(iname + " is duplicate!");
