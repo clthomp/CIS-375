@@ -956,19 +956,20 @@ void main() {
 	string keyin;		//to store keyboard input
 	bool fail;			//to exit input loop
 	Input * input;		//pointer to input; so Input object can be recreated easily.
+	Output * output;	//pointer to output; so Output object can be recreated easily.
 	
 	do													
 	{	
 		fail = false;									//Assume all will be well
 		input = nullptr;								//In case Input object fails at construction
 
-		cout << "Enter input filepath: ";				//prompt user for Filepath (must not have spaces)
+		cout << "Enter input filepath: ";				//prompt user for Filepath
 
 		getline(cin, keyin);							//take keyboard input; getline is best because it will incorporate spaces!
 
 		try {											//Input will throw if parsing fails
 
-			input = new Input(keyin, map);				//create new Input object with userentered filepath
+			input = new Input(keyin, map);				//create new Input object with user entered filepath
 
 			do {										//Allow user as many queries as needed. (Parameter changes or calculation initialization)
 
@@ -996,9 +997,38 @@ void main() {
 	//INPUT IS FINISHED AND SUCCESSFUL PAST THIS LINE. MAP CALCULATIONS CAN NOW BE INITIALIZED AND OUTPUT MADE
 
 	vector<vector<int>> lightTimings = map.lightOptimization();
-	printLightTimings(map, lightTimings);
+	printLightTimings(map, lightTimings);				//for debug?
 
-	cout << "finished computation";
+	do
+	{
+		fail = false;									//Assume all will be well
+		output = nullptr;								//In case Output object fails at construction
+
+		cout << "Enter output filepath: ";				//prompt user for Filepath
+
+		getline(cin, keyin);							//take keyboard input; getline is best because it will incorporate spaces!
+
+		try {
+
+			output = new Output(keyin, map);			//create new Output object with user entered filepath
+
+			output->outputToFilePath(lightTimings);		//attempt to output results to file
+
+		}
+		catch (...) {									//To catch all exceptions, mostly from std library functions
+
+			cout << "Error while writing file!" << endl;//Uknown Error
+
+			fail = true;								//set output loop to repeat
+		}
+
+		delete output;
+
+	} while (fail);
+
+	//OUTPUT IS FINISHED AND SUCCESSFUL PAST THIS LINE.
+
+	cout << "finished computation" << endl;
 }
 
 inline void strPopFront(string & input) {	//removes first character of 'input'
