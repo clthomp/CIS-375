@@ -556,21 +556,19 @@ private:
 
 			//blueprint = new Road(name, id, time);
 			// TODO: add lanes -- Robert
-			blueprint = new Road(name, id, time, 1);	//Temporary until merge occurs
-			/*
+			blueprint = new Road(name, id, time, 1);
+			
 			if (map->roadExists(blueprint))
-				throw name + " " + id + " is duplicate!";
-			*/
+				throw string(name + " " + id + " is duplicate!");
+			
 			map->importRoads(*blueprint);	//DOES NOT CURRENTLY CHECK IF ROAD ALREADY EXISTS
 
 			delete blueprint;
 		}
-		/*
 		catch (string s){	//If duplicate road is found.
 
 			throw;
 		}
-		*/
 		catch (...) {
 
 			return false;
@@ -635,8 +633,8 @@ private:
 
 					road = map->getroadPntr(rname, rid);
 
-					//if (road == nullptr)
-					//	throw rname + " " + rid + " is not defined!";
+					if (road == nullptr)
+						throw string(rname + " " + rid + " is not defined!");
 
 					roadlist.push_back(road);
 					densitylist.push_back(density);
@@ -655,12 +653,12 @@ private:
 			input.open(path);
 			input.seekg(bookmark);	//restores saved streampos in case try block throws within the line
 
-			blueprint = new Intersection(iname, roadlist, densitylist);
+			blueprint = new Intersection(iname, roadlist, densitylist); //temporary
+			//blueprint = new Intersection(iname, roadlist, densitylist, lanes);
 
-			/*
 			if (map->intersectExists(blueprint))
-				throw iname + " is duplicate!";
-			*/
+				throw string(iname + " is duplicate!");
+			
 			map->importIntersections(*blueprint);	//DOES NOT CURRENTLY CHECK IF INTERSECTION ALREADY EXISTS
 
 			delete blueprint;
