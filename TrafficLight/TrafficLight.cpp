@@ -205,15 +205,15 @@ public:
 
 			currentChanges[current] += SETTINGS.lightTimeTestValueChange;
 			// don't allow any changes above max light time
-			if (currentChanges[current] <= SETTINGS.maximumLightTime) {
+			//if (currentChanges[current] <= SETTINGS.maximumLightTime) {
 				getLightChanges(currentChanges, current + 1);
-			}
+			//}
 
 			currentChanges[current] -= SETTINGS.lightTimeTestValueChange * 2;
 			// don't allow any changes below min light time
-			if (currentChanges[current] >= SETTINGS.minimumLightTime) {
+			//if (currentChanges[current] >= SETTINGS.minimumLightTime) {
 				getLightChanges(currentChanges, current + 1);
-			}
+			//}
 		}
 	}
 
@@ -373,6 +373,16 @@ public:
 
 		vector<vector<int>> resultLightTimes = initial.lightTimes;
 
+		vector<vector<vector<int>>> allChangeSets;
+		for (int i = 0; i < intersections.size(); i++) {
+			int lightCount = initial.lightTimes[i].size();
+			vector<int> changesSet(lightCount, 0);
+			tempSolutions.clear();
+			// OPTIMIZE: calculate the deltas once and reuse them
+			getLightChanges(changesSet, 0); //backtracking  // results explained at that function
+			allChangeSets.push_back(tempSolutions);
+		}
+
 		if (intersections.size() > 0) {
 			for (int iter = 0; iter < SETTINGS.iterations; iter++) {
 				while (!pq.empty()) {
@@ -382,24 +392,36 @@ public:
 					// add more nodes to pq
 					// ensures it hasn't passed max number of intersections
 					if (currentNode.currentIntersection < currentNode.lightTimes.size()) {
-						int lightCount = currentNode.lightTimes[currentNode.currentIntersection].size();
-						vector<int> changesSet(lightCount, 0);
-						tempSolutions.clear();
-						getLightChanges(changesSet, 0); //backtracking  // results explained at that function
+						//int lightCount = currentNode.lightTimes[currentNode.currentIntersection].size();
+						//vector<int> changesSet(lightCount, 0);
+						//tempSolutions.clear();
+						// OPTIMIZE: calculate the deltas once and reuse them
+						//getLightChanges(changesSet, 0); //backtracking  // results explained at that function
 						if (DEBUG_MODE) {
-							cout << "Size of thing: " << tempSolutions.size() << endl;
+							cout << "Size of thing: " << allChangeSets[currentNode.currentIntersection].size() << endl;
 							cout << "Total Nodes: " << totalNodes << endl;
 							cout << "Current Intersection: " << currentNode.currentIntersection << endl;
 						}
 						// place each possible solution into a Node in the PQ
-						for (int i = 0; i < tempSolutions.size(); i++) {
+						//cout << "SIZE" << tempSolutions.size() << endl;
+
+						for (int i = 0; i < allChangeSets[currentNode.currentIntersection].size(); i++) {
 							vector<vector<int>> newLightTimes = currentNode.lightTimes;
-							for (int j = 0; j < tempSolutions[i].size(); j++) {
-								newLightTimes[currentNode.currentIntersection][j] += tempSolutions[i][j];
+							bool valid = true;
+							for (int j = 0; j < allChangeSets[currentNode.currentIntersection][i].size(); j++) {
+								newLightTimes[currentNode.currentIntersection][j] += allChangeSets[currentNode.currentIntersection][i][j];
+								if (newLightTimes[currentNode.currentIntersection][j] < SETTINGS.minimumLightTime
+									|| newLightTimes[currentNode.currentIntersection][j] > SETTINGS.maximumLightTime) {
+									valid = false;
+									//cout << "NOT VALID" << endl;
+								}
 							}
-							Node newNode(this, intersections, newLightTimes, currentNode.currentIntersection + 1);
-							pq.push(newNode);
-							totalNodes++;
+							if (valid) {
+								//cout << "YES VALID" << endl;
+								Node newNode(this, intersections, newLightTimes, currentNode.currentIntersection + 1);
+								pq.push(newNode);
+								totalNodes++;
+							}
 						}
 					}
 
