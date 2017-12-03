@@ -1,0 +1,48 @@
+:BEGIN,,,
+:ROADS,,,
+Sherwood,1,60,
+Sherwood,2,42,
+Lawrence,1,72,
+Lawrence,2,144,
+Van Dyke,1,51,
+Van Dyke,2,26,
+Van Dyke,3,51,
+Van Dyke,4,26,
+Lorraine,1,72,
+Lorraine,2,144,
+Stephens,1,30,
+Stephens,2,60,
+10 Mile,1,20,
+10 Mile,2,20,
+10 Mile,3,40,
+Engleman,1,36,
+Engleman,2,72,
+Bernice,1,36,
+Bernice,2,50,
+11 Mile,1,23,
+11 Mile,2,46,
+:INTERSECTIONS,,,
+:Sherwood 10 Mile,,,
+Sherwood,2,15,2
+10 Mile,1,20,2
+Sherwood,1,15,2
+:Lawrence 10 Mile,,,
+Lawrence,2,15,1
+10 Mile,2,20,2
+Lawrence,1,15,1
+10 Mile,1,20,2
+:Stephens Van Dyke,,,
+Van Dyke,1,30,3
+Stephens,2,15,1
+Stephens,1,15,1
+:10 Mile Van Dyke,,,
+Van Dyke,2,30,3
+10 Mile,3,20,2
+Van Dyke,1,30,3
+10 Mile,2,20,2
+:Engleman Van Dyke,,,
+Van Dyke,3,30,3
+Engleman,2,10,1
+Van Dyke,2,30,3
+Engleman,1,10,1
+:END,,,
