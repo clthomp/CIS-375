@@ -849,7 +849,7 @@ public:
 		path = inputPath;
 		
 		input.exceptions(ifstream::failbit | ifstream::badbit);		//sets input to throw exceptions for logical or read errors
-		input.open(inputPath);
+		input.open(path);
 
 		map = &m;
 	}
@@ -877,6 +877,42 @@ public:
 			}
 			return true;
 		}
+	}
+};
+
+// class written by Dwight Herman
+class Output {	//NEEDS TO BE CONTAINED WITHIN A TRY BLOCK. WILL THROW IF OUTPUT FAILS!
+
+private:
+	Map * map;						//pointer to Map object to pull data from
+	string path;					//path to output .csv file
+	ofstream output;				//output stream to .csv file
+public:
+	Output(string outpath, Map &m) {		//constructor that takes filepath of .csv file to store data into and map object to pulldata from
+
+		path = outpath;
+
+		output.exceptions(ifstream::failbit | ifstream::badbit);		//sets input to throw exceptions for logical or read errors
+		output.open(path, ofstream::app);								//appends output
+
+		map = &m;
+	}
+	void outputToFilePath(vector<vector<int>> cycleTimings) {			//prints results to filestream output
+
+		output << ":BEGIN," << endl << ":INTERSECTIONS," << endl;
+
+		for (int i = 0; i < cycleTimings.size(); i++) {
+
+			output << ':' << map->intersections[i].name << ',' << endl;
+
+			for (int j = 0; j < cycleTimings[i].size(); j++) {
+
+				output << map->intersections[i].togetherRoads[j].name << ',' << cycleTimings[i][j] << endl;
+
+			}
+		}
+
+		output << ":END" << endl;
 	}
 };
 
@@ -915,7 +951,7 @@ void main() {
 	*/
 
 	//HOW TO USE INPUT:
-
+  
 	Map map;			//to store Input data
 	string keyin;		//to store keyboard input
 	bool fail;			//to exit input loop
