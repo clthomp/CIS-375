@@ -555,21 +555,20 @@ private:
 			//PARSE IS SUCCESSFUL PAST THIS LINE: (IT IS OK TO THROW OUT OF FUNCTION!)
 
 			//blueprint = new Road(name, id, time);
-			blueprint = new Road(name, id, time);	//Temporary until merge occurs
-			/*
+			// TODO: add lanes -- Robert
+			blueprint = new Road(name, id, time, 1);
+			
 			if (map->roadExists(blueprint))
-				throw name + " " + id + " is duplicate!";
-			*/
+				throw string(name + " " + id + " is duplicate!");
+			
 			map->importRoads(*blueprint);	//DOES NOT CURRENTLY CHECK IF ROAD ALREADY EXISTS
 
 			delete blueprint;
 		}
-		/*
 		catch (string s){	//If duplicate road is found.
 
 			throw;
 		}
-		*/
 		catch (...) {
 
 			return false;
@@ -634,8 +633,8 @@ private:
 
 					road = map->getroadPntr(rname, rid);
 
-					//if (road == nullptr)
-					//	throw rname + " " + rid + " is not defined!";
+					if (road == nullptr)
+						throw string(rname + " " + rid + " is not defined!");
 
 					roadlist.push_back(road);
 					densitylist.push_back(density);
@@ -656,10 +655,9 @@ private:
 
 			blueprint = new Intersection(iname, roadlist, laneList, densitylist);
 
-			/*
 			if (map->intersectExists(blueprint))
-				throw iname + " is duplicate!";
-			*/
+				throw string(iname + " is duplicate!");
+			
 			map->importIntersections(*blueprint);	//DOES NOT CURRENTLY CHECK IF INTERSECTION ALREADY EXISTS
 
 			delete blueprint;
