@@ -450,9 +450,10 @@ void printLightTimings(Map map, vector<vector<int>> lightTimings) {
 	}
 };
 
+// class written by Dwight Herman
 class Input {	//NEEDS TO BE CONTAINED WITHIN A TRY BLOCK. WILL THROW STRINGS IF PARSING OR ANYTHING ELSE FAILS!
 	
-	typedef void(Settings::*paramSet)(int);	//function pointer to Map method to set a specific parameter.
+	typedef void(Settings::*paramSet)(int);	//function pointer to Settings method to set a specific parameter.
 
 private:
 	string path;			//path of .csv file (When file needs to be re-opened)
@@ -486,7 +487,7 @@ private:
 
 		return stoi(feed, nullptr);
 	}
-
+	
 	string intersectname() {	//parse intersectname non-terminal of input grammar; returns string of intersection name
 
 		char feed[75];	//Intersection name limit is 72 characters + 3 for nullsequence and cleanliness
@@ -498,19 +499,14 @@ private:
 
 		return string(feed);
 	}
-	/*
-	float trafficdensity() {	//parse trafficdensity non-terminal of input grammar; returns integer of traffic density
 	
-	char feed[20];	//characters in FLT_MAX + 4 for nullsequence and cleanliness
+	float trafficdensity() {	//parse trafficdensity non-terminal of input grammar; returns integer of traffic density
 
-	input.get(feed, 16, ',');
+		char feed[20];	//characters in FLT_MAX + 4 for nullsequence and cleanliness
 
-	return stof(feed, nullptr);
-	*/
-	int trafficdensity() {				//Temporary until merge
-		char feed[15];					//
-		input.get(feed, 10, ',');		//
-		return stoi(feed, nullptr);		//
+		input.get(feed, 16, ',');
+
+		return stof(feed, nullptr);
 	}
 
 	//IDENTICAL TO TRAVELTIME() - WILL CONSIDER MERGING
@@ -583,8 +579,6 @@ private:
 		Road * road;				//holds pointer to road already within Map: DO NOT DELETE!
 		vector<Road*> roadlist;		//holds pointers to roads already within Map: DO NOT DELETE!
 		int lanes;
-		//int density;				//Temporary until merge
-		//vector<int> densitylist;	//
 		float density;
 		vector<float> densitylist;
 		bool go = true;
@@ -685,7 +679,7 @@ private:
 		input.getline(feed, 10);
 
 		if (string(feed) != ":ROADS,,,")
-			throw "Input file does not contain ':ROADS'!";
+			throw string("Input file does not contain ':ROADS'!");
 
 		do {
 
@@ -709,7 +703,7 @@ private:
 		input.getline(feed, 20);
 
 		if (string(feed) != ":INTERSECTIONS,,,")
-			throw "Input file does not contain ':INTERSECTIONS'!";
+			throw string("Input file does not contain ':INTERSECTIONS'!");
 		
 		do {
 
@@ -738,14 +732,14 @@ private:
 			input.getline(feed, 10);
 
 			if (string(feed) != ":BEGIN,,,")
-				throw "Input file does not contain ':BEGIN'!";
+				throw string("Input file does not contain ':BEGIN'!");
 
 			data();
 
 			input.getline(feed, 10);
 
 			if (string(feed) != ":END,,,")
-				throw "Input file does not contain ':END'!";
+				throw string("Input file does not contain ':END'!");
 	}
 
 	paramSet pid(string & input) {		//returns function pointer of proper Map method given input
@@ -764,7 +758,7 @@ private:
 		}
 		else {
 			
-			throw "Invalid Parameter Specifier!";
+			throw string("Invalid Parameter Specifier!");
 		}
 	}
 
@@ -776,7 +770,7 @@ private:
 		}
 		catch (...) {
 
-			throw "Invalid Integer!";
+			throw string("Invalid Integer!");
 		}
 	}
 
@@ -785,7 +779,7 @@ private:
 		paramSet p = pid(input);
 
 		if (input[0] != ' ')
-			throw "No space after Parameter Specifier!";
+			throw string("No space after Parameter Specifier!");
 		strPopFront(input);
 
 		(&SETTINGS->*p)(value(input));
@@ -793,25 +787,38 @@ private:
 
 public:
 	Input(string inputPath, Map &m) {								//constructor that takes filepath of .csv file and Map object to store input into
-
+		
 		path = inputPath;
-
+		
 		input.exceptions(ifstream::failbit | ifstream::badbit);		//sets input to throw exceptions for logical or read errors
 		input.open(inputPath);
 
 		map = &m;
 	}
 	~Input()
-	{
+	{		
 		if (input.is_open())
 			input.close();
 	}
-	void paramQuery(string input) {		//to begin parsing of parameter query 'input'
+	bool paramQuery(string input) {		//to begin parsing of parameter query 'input', will return true if more queries can be made
 
-		if (input == CALC_INIT)
+		if (input == CALC_INIT) {
 			parseInput();
-		else
-			parseParam(input);
+			return false;
+		}
+		else {
+			try {
+				parseParam(input);	
+			}
+			catch (string s) {
+				cout << s << endl;
+			}
+			catch (...) {
+				cout << "Invalid Parameter!" << endl;
+				throw;
+			}
+			return true;
+		}
 	}
 };
 
@@ -847,6 +854,54 @@ void main() {
 	printLightTimings(map, lightTimings);
 	
 	cout << "finished computation";
+	*/
+
+	/*
+	HOW TO USE INPUT:
+
+	Map map;			//to store Input data
+	string keyin;		//to store keyboard input
+	bool fail;			//to exit input loop
+	Input * input;		//pointer to input; so Input object can be recreated easily.
+	
+	do													
+	{	
+		fail = false;									//Assume all will be well
+		input = nullptr;								//In case Input object fails at construction
+
+		cout << "Enter input filepath: ";				//prompt user for Filepath
+
+		cin >> keyin;									//take keyboard input
+
+		try {											//Input will throw if parsing fails
+
+			input = new Input(keyin, map);				//create new Input object with userentered filepath
+
+			do {										//Allow user as many queries as needed. (Parameter changes or calculation initialization)
+
+				cin >> keyin;							//take keyboard input
+
+			} while (input->paramQuery(keyin));			//have Input object query keyin; if more queries can be made, it will return true and repeat the loop.
+		}
+		catch (string s) {								//Strings will be thrown if failed for known reason
+
+			cout << s << endl;							//Tell user why parsing failed
+
+			fail = true;								//Set input loop to repeat
+		}
+		catch (...) {									//To catch all other exceptions, mostly from std library functions
+
+			cout << "Error while reading file!" << endl;//Unknown error
+
+			fail = true;								//Set input loop to repeat
+		}
+
+		delete input;									//Destroy input when finished using it
+
+	} while (fail);										//Allow user to retry if file fails
+		
+	//INPUT IS FINISHED AND SUCCESSFUL PAST THIS LINE. MAP CALCULATIONS CAN NOW BE INITIALIZED AND OUTPUT MADE
+
 	*/
 }
 
