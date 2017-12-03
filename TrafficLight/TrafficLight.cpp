@@ -822,6 +822,22 @@ public:
 	}
 };
 
+// class written by Dwight Herman
+class Output
+{
+private:
+	string path;					//path to output .csv file
+	ofstream output;				//output stream to .csv file
+public:
+	Output(string outpath) {		//constructor that takes filepath of .csv file store data into
+
+	}
+	void outputToFilePath(vector<vector<int>> cycleTimings)
+	{
+
+	}
+};
+
 void main() {
 	/*Map map;
 	SETTINGS.minimumLightTime = 15;
