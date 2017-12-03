@@ -791,7 +791,7 @@ public:
 		path = inputPath;
 		
 		input.exceptions(ifstream::failbit | ifstream::badbit);		//sets input to throw exceptions for logical or read errors
-		input.open(inputPath);
+		input.open(path);
 
 		map = &m;
 	}
@@ -831,9 +831,13 @@ private:
 public:
 	Output(string outpath) {		//constructor that takes filepath of .csv file store data into
 
+		path = outpath;
+
+		output.exceptions(ifstream::failbit | ifstream::badbit);		//sets input to throw exceptions for logical or read errors
+		output.open(path, ofstream::app);								//appends output
 	}
-	void outputToFilePath(vector<vector<int>> cycleTimings)
-	{
+	void outputToFilePath(vector<vector<int>> cycleTimings) {			//prints results to filestream output
+
 
 	}
 };
