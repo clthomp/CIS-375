@@ -63,15 +63,13 @@ public:
 	string name;
 	string id;
 	float travelTime;
-	int mainLanes;
 	vector<Intersection> endPoints;
 	void setEndPoint(Intersection point); // located following Intersection class definition
 
-	Road(string name, string id, float travelTime, int mainLanes) {
+	Road(string name, string id, float travelTime) {
 		this->name = name;
 		this->id = id;
 		this->travelTime = travelTime;
-		this->mainLanes = mainLanes;
 	}
 };
 
@@ -82,6 +80,7 @@ private:
 public:
 	vector<Road*> roadsThatIntersect;
 	string name;
+	vector<int> laneList;
 	vector<float> roadDensity; // parallel to roadsThatIntersect
 
 	// used to store which 2 roads have the same name
@@ -97,9 +96,10 @@ public:
 	vector<TogetherRoad> togetherRoads;
 
 	//TODO: This needs to call setEndPoint(*this) for all Roads in roadsThatIntersect per Sequence Diagram! --Dwight
-	Intersection(string name, vector<Road*>roads, vector<float>density) {
+	Intersection(string name, vector<Road*>roads, vector<int> laneList, vector<float>density) {
 		this->name = name;
 		roadsThatIntersect = roads;
+		this->laneList = laneList;
 		roadDensity = density;
 
 		findTogetherRoads();
@@ -220,7 +220,7 @@ public:
 				// outgoing traffic
 				// expected density removed
 				minusDensities[i][j] = getCarsPassing(lightTime) * SETTINGS.densityToCarRatio *
-					float(thisRoad->mainLanes) /
+					float(intersections[i].laneList[j]) /
 					(thisRoad->travelTime * SETTINGS.travelTimeDensityMultiplier);
 
 				minusDensities[i][j] = min(intersections[i].roadDensity[j], minusDensities[i][j]);
@@ -311,7 +311,7 @@ public:
 				float density = 0;
 				for (int i = 0; i < currentIntersection; i++) {
 					for (int j = 0; j < lightTimes[i].size(); j++) {
-						density += getCarsPassing(lightTimes[i][j]) * intersections[i].roadsThatIntersect[j]->mainLanes;
+						density += getCarsPassing(lightTimes[i][j]) * intersections[i].laneList[j];
 					}
 				}
 
@@ -321,7 +321,7 @@ public:
 				// ideal would be if each light were max time and there was an exact amount of cars to move through the light for max light time
 				for (int i = currentIntersection; i < intersections.size() ; i++) {
 					for (int j = 0; j < lightTimes[i].size(); j++) {
-						density += getCarsPassing(SETTINGS.maximumLightTime) * intersections[i].roadsThatIntersect[j]->mainLanes;
+						density += getCarsPassing(SETTINGS.maximumLightTime) * intersections[i].laneList[j];
 					}
 				}
 				return density * SETTINGS.densityToCarRatio;
@@ -555,8 +555,7 @@ private:
 			//PARSE IS SUCCESSFUL PAST THIS LINE: (IT IS OK TO THROW OUT OF FUNCTION!)
 
 			//blueprint = new Road(name, id, time);
-			// TODO: add lanes -- Robert
-			blueprint = new Road(name, id, time, 1);	//Temporary until merge occurs
+			blueprint = new Road(name, id, time);	//Temporary until merge occurs
 			/*
 			if (map->roadExists(blueprint))
 				throw name + " " + id + " is duplicate!";
@@ -655,7 +654,7 @@ private:
 			input.open(path);
 			input.seekg(bookmark);	//restores saved streampos in case try block throws within the line
 
-			blueprint = new Intersection(iname, roadlist, densitylist);
+			blueprint = new Intersection(iname, roadlist, laneList, densitylist);
 
 			/*
 			if (map->intersectExists(blueprint))
@@ -878,7 +877,7 @@ void main() {
 
 		cout << "Enter input filepath: ";				//prompt user for Filepath
 
-		getline(cin, keyin);							//take keyboard input; getline is best because it will incorporate spaces!
+		cin >> keyin;									//take keyboard input
 
 		try {											//Input will throw if parsing fails
 
@@ -886,7 +885,7 @@ void main() {
 
 			do {										//Allow user as many queries as needed. (Parameter changes or calculation initialization)
 
-				getline(cin, keyin);					//take keyboard input; getline is best because it will incorporate spaces!
+				cin >> keyin;							//take keyboard input
 
 			} while (input->paramQuery(keyin));			//have Input object query keyin; if more queries can be made, it will return true and repeat the loop.
 		}
