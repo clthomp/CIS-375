@@ -1,3 +1,10 @@
+/*
+
+CenterLineImport-reduced.csv
+--calculate
+
+*/
+
 #include <iostream>
 #include <string>
 #include <fstream> //for Input and Output
@@ -12,13 +19,15 @@
 using namespace std;
 
 // allows printing debug messages
-bool DEBUG_MODE = true;
+bool DEBUG_MODE = false;
 
 // all parameter values should be located here
 class Settings {
 public:
 	int minimumLightTime = 15;
-	int maximumLightTime = 60;
+	int maximumLightTime = 45;
+	// should be between min and max with regards to being divisible by lightTimeTestValueChange
+	int defaultLightValue = 30;
 
 	// time it takes before cars begin moving after a light turns green
 	float carStartupTime = 3;
@@ -35,15 +44,17 @@ public:
 	// how many times to run optimization
 	// more iterations will give more accurate results, but will take longer to compute
 	// each individual iteration should take the same amount of time
-	int iterations = 2;
+	int iterations = 1;
 
-	void setMin(int value) {
-		minimumLightTime = value;
-	}
-
-	void setMax(int value) {
-		maximumLightTime = value;
-	}
+	void setMin(int value) { minimumLightTime = value; }
+	void setMax(int value) { maximumLightTime = value; }
+	void setDefaultLightValue(int value) { defaultLightValue = value; }
+	void setCarStartupTime(int value) { carStartupTime = value; }
+	void setCarPassingRate(int value) { carPassingRate = value; }
+	void setDensityToCarRatio(int value) { densityToCarRatio = value; }
+	void setTravelTimeDensityMultiplier(int value) { travelTimeDensityMultiplier = value; }
+	void setLightTimeTestValueChange(int value) { lightTimeTestValueChange = value; }
+	void setIterations(int value) { iterations = value; }
 };
 Settings SETTINGS;
 
@@ -52,6 +63,13 @@ const string PARAM_DELIM = "--";						//string to identify keyboard input as a p
 const string CALC_INIT = PARAM_DELIM + "calculate";		//string to initiate calculation in parser
 const string MIN_PID = PARAM_DELIM + "mintiming";		//string for parser to identify request for min timing change
 const string MAX_PID = PARAM_DELIM + "maxtiming";		//string for parser to identify request for max timing change
+const string DEFAULT_PID = PARAM_DELIM + "default";
+const string STARTUP_PID = PARAM_DELIM + "startup";
+const string PASSING_PID = PARAM_DELIM + "passing";
+const string DENSITY = PARAM_DELIM + "density";
+const string TRAVEL_PID = PARAM_DELIM + "travel";
+const string CHANGE_PID = PARAM_DELIM + "change";
+const string ITERATIONS_PID = PARAM_DELIM + "iterations";
 
 class Intersection;
 
@@ -245,7 +263,7 @@ public:
 
 				// outgoing traffic
 				// expected density removed
-				cout << " LETS SEE: " << intersections[i].roadDensity[j] << " - " << minusDensities[i][j] << endl;
+				//cout << " LETS SEE: " << intersections[i].roadDensity[j] << " - " << minusDensities[i][j] << endl;
 				intersections[i].roadDensity[j] -= minusDensities[i][j];
 
 				// incoming traffic
@@ -342,7 +360,8 @@ public:
 
 		// set starter values as average between min and max allowed
 		vector<vector<int>> initialLightTimes;
-		float averageLightTime = (SETTINGS.minimumLightTime + SETTINGS.maximumLightTime) / 2;
+		//float averageLightTime = (SETTINGS.minimumLightTime + SETTINGS.maximumLightTime) / 2;
+		float averageLightTime = SETTINGS.defaultLightValue;
 		for (int i = 0; i < intersections.size(); i++) {
 			vector<int> singleLightTime(intersections[i].togetherRoads.size(), averageLightTime); /*number of light times as connected roads*/
 			initialLightTimes.push_back(singleLightTime);
@@ -369,6 +388,8 @@ public:
 						getLightChanges(changesSet, 0); //backtracking  // results explained at that function
 						if (DEBUG_MODE) {
 							cout << "Size of thing: " << tempSolutions.size() << endl;
+							cout << "Total Nodes: " << totalNodes << endl;
+							cout << "Current Intersection: " << currentNode.currentIntersection << endl;
 						}
 						// place each possible solution into a Node in the PQ
 						for (int i = 0; i < tempSolutions.size(); i++) {
@@ -388,7 +409,12 @@ public:
 					if (currentNode.currentIntersection == intersections.size() && pq.top().potentialFlow <= currentNode.potentialFlow) {
 						// lightTimes belonging to the best node
 						resultLightTimes = currentNode.lightTimes;
+						//cout << "\tYA OK BUT YES HERE WE GO" << endl;
 						break;
+					} else {
+						//cout << "\tya ok but no try again" << endl;
+						//cout << currentNode.currentIntersection << " vs " << intersections.size() << endl;
+						//cout << pq.top().potentialFlow << " > " << currentNode.potentialFlow << endl;
 					}
 				}
 
@@ -863,8 +889,7 @@ void main() {
 	cout << "finished computation";
 	*/
 
-	/*
-	HOW TO USE INPUT:
+	//HOW TO USE INPUT:
 
 	Map map;			//to store Input data
 	string keyin;		//to store keyboard input
@@ -876,7 +901,7 @@ void main() {
 		fail = false;									//Assume all will be well
 		input = nullptr;								//In case Input object fails at construction
 
-		cout << "Enter input filepath: ";				//prompt user for Filepath
+		cout << "Enter input filepath: ";				//prompt user for Filepath (must not have spaces)
 
 		cin >> keyin;									//take keyboard input
 
@@ -909,7 +934,10 @@ void main() {
 		
 	//INPUT IS FINISHED AND SUCCESSFUL PAST THIS LINE. MAP CALCULATIONS CAN NOW BE INITIALIZED AND OUTPUT MADE
 
-	*/
+	vector<vector<int>> lightTimings = map.lightOptimization();
+	printLightTimings(map, lightTimings);
+
+	cout << "finished computation";
 }
 
 inline void strPopFront(string & input) {	//removes first character of 'input'
