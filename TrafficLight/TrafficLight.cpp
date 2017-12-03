@@ -95,12 +95,15 @@ public:
 	};
 	vector<TogetherRoad> togetherRoads;
 
-	//TODO: This needs to call setEndPoint(*this) for all Roads in roadsThatIntersect per Sequence Diagram! --Dwight
 	Intersection(string name, vector<Road*>roads, vector<int> laneList, vector<float>density) {
 		this->name = name;
 		roadsThatIntersect = roads;
 		this->laneList = laneList;
 		roadDensity = density;
+
+		for (int i = 0; i < roadsThatIntersect.size(); i++) {
+			roadsThatIntersect[i]->setEndPoint(*this);
+		}
 
 		findTogetherRoads();
 	}
