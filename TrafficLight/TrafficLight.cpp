@@ -407,32 +407,39 @@ public:
 		return resultLightTimes;
 	}
 
-
+	// returns a pointer to a road with the given name and id, nullptr if none exists
 	Road * getroadPntr(string name, string id) {	//Returns pointer to matching road stored within roads vector, Nullptr if no match. So that Input can construct Intersections from roads within map!
 													//Requirements and Suggestions from Dwight
-
-
-
-													//TO BE IMPLEMENTED
+		for (int i = 0; i < roads.size(); i++) {
+			if (roads[i].name == name && roads[i].id == id) {
+				return &roads[i];
+			}
+		}
 
 		return nullptr;
 	}
 
-	bool roadExists(Road * road) { //So that Input creates valid Intersections. Could also be used to prevent duplicates!
+	// compares name and id of Intersection to check if it already exists
+	bool roadExists(Road * road) {
+		for (int i = 0; i < roads.size(); i++) {
+			if (roads[i].name == road->name && roads[i].id == road->id) {
+				return true;
+			}
+		}
 
-								   //TO BE IMPLEMENTED
-
-								   //ONLY COMPARE NAME AND ID
-		return true;
+		return false;
 	}
 
-	/*
-	bool intersectExists(Intersection * intersect) {	//Could be used to prevent Input from creating duplicates!
+	// compares name of Intersection to check if it already exists
+	bool intersectExists(Intersection * intersection) {
+		for (int i = 0; i < intersections.size(); i++) {
+			if (intersections[i].name == intersection->name) {
+				return true;
+			}
+		}
 
-	//TO BE IMPLEMENTED
-	//ONLY CAMPARE NAME
+		return false;
 	}
-	*/
 };
 
 void printLightTimings(Map map, vector<vector<int>> lightTimings) {
