@@ -5,6 +5,12 @@ CenterLineImport-reduced.csv
 --change 5
 --calculate
 
+CenterLineImport-reduced.csv
+--mintiming 1
+--maxtiming 1
+--default 0
+--calculate
+
 */
 
 #include <iostream>
@@ -48,9 +54,18 @@ public:
 	// each individual iteration should take the same amount of time
 	int iterations = 1;
 
-	void setMin(int value) { minimumLightTime = value; }
-	void setMax(int value) { maximumLightTime = value; }
-	void setDefaultLightValue(int value) { defaultLightValue = value; }
+	void setMin(int value) {
+		minimumLightTime = max(1, value);
+		if (value <= 0) { cout << "Warning: Minimum Light Timing must be positive." << endl;}
+	}
+	void setMax(int value) {
+		maximumLightTime = max(1, value);
+		if (value <= 0) { cout << "Warning: Maximum Light Timing must be positive." << endl; }
+	}
+	void setDefaultLightValue(int value) {
+		defaultLightValue = max(1, value);
+		if (value <= 0) { cout << "Warning: Default Light Timing must be positive." << endl; }
+	}
 	void setCarStartupTime(int value) { carStartupTime = value; }
 	void setCarPassingRate(int value) { carPassingRate = value; }
 	void setDensityToCarRatio(int value) { densityToCarRatio = value; }
