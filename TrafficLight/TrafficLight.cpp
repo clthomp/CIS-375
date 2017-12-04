@@ -1,6 +1,8 @@
 /*
 
 CenterLineImport-reduced.csv
+--iterations 3
+--change 5
 --calculate
 
 */
@@ -106,9 +108,11 @@ public:
 	// ASSUMPTION: and therefore their lights are at the same time
 	struct TogetherRoad {
 		vector<Road*> roads;
+		vector<float> density;
 		string name;
-		TogetherRoad(Road* initialRoad) {
+		TogetherRoad(Road* initialRoad, float density) {
 			roads.push_back(initialRoad);
+			this->density.push_back(density);
 			this->name = initialRoad->name;
 		}
 	};
@@ -136,12 +140,13 @@ public:
 				if (roadsThatIntersect[i]->name == togetherRoads[j].name) {
 					isFound = true;
 					(togetherRoads[j].roads).push_back(roadsThatIntersect[i]);
+					(togetherRoads[j].density).push_back(roadDensity[i]);
 				}
 			}
 
 			// if an existing one is not found, create a new one
 			if (!isFound) {
-				togetherRoads.push_back(TogetherRoad(roadsThatIntersect[i]));
+				togetherRoads.push_back(TogetherRoad(roadsThatIntersect[i], roadDensity[i]));
 			}
 		}
 	}
@@ -320,6 +325,8 @@ public:
 			float potentialFlow = 0;
 			int currentIntersection = 0;
 
+			float roadAverageMultiplier = 0.75;
+
 			Node(Map* parent, vector<Intersection> intersections, vector<vector<int>> lightTimes, int currentIntersection) {
 				this->parent = parent;
 				this->intersections = intersections;
@@ -332,8 +339,24 @@ public:
 			float findPotentialFlow() {
 				float density = 0;
 				for (int i = 0; i < currentIntersection; i++) {
+					float averageDensity = 0;
+					float sumDensity = 0;
+					int numRoads = 0;
+
 					for (int j = 0; j < lightTimes[i].size(); j++) {
-						density += getCarsPassing(lightTimes[i][j]) * intersections[i].laneList[j];
+						for (int k = 0; k < intersections[i].togetherRoads[j].density.size(); k++) {
+							sumDensity += intersections[i].togetherRoads[j].density[k];
+							numRoads++;
+						}
+					}
+					averageDensity = sumDensity / numRoads;
+
+					for (int j = 0; j < lightTimes[i].size(); j++) {
+						float roadDensity = 0;
+						for (int k = 0; k < intersections[i].togetherRoads[j].density.size(); k++) {
+							roadDensity += intersections[i].togetherRoads[j].density[k] - averageDensity * roadAverageMultiplier;
+						}
+						density += getCarsPassing(lightTimes[i][j]) * intersections[i].laneList[j] * roadDensity;
 					}
 				}
 
@@ -341,11 +364,12 @@ public:
 				// assume rest are in the ideal state
 				// since cars passing should accout for cars speeding up before they can move,
 				// ideal would be if each light were max time and there was an exact amount of cars to move through the light for max light time
-				for (int i = currentIntersection; i < intersections.size() ; i++) {
+				/*for (int i = currentIntersection; i < intersections.size() ; i++) {
 					for (int j = 0; j < lightTimes[i].size(); j++) {
 						density += getCarsPassing(SETTINGS.maximumLightTime) * intersections[i].laneList[j];
 					}
 				}
+				*/
 				return density * SETTINGS.densityToCarRatio;
 			}
 		};
@@ -409,13 +433,20 @@ public:
 						for (int i = 0; i < allChangeSets[currentNode.currentIntersection].size(); i++) {
 							vector<vector<int>> newLightTimes = currentNode.lightTimes;
 							bool valid = true;
+							bool allGreaterZero = true;
 							for (int j = 0; j < allChangeSets[currentNode.currentIntersection][i].size(); j++) {
 								newLightTimes[currentNode.currentIntersection][j] += allChangeSets[currentNode.currentIntersection][i][j];
+								if (allChangeSets[currentNode.currentIntersection][i][j] <= 0) {
+									allGreaterZero = false;
+								}
 								if (newLightTimes[currentNode.currentIntersection][j] < SETTINGS.minimumLightTime
 									|| newLightTimes[currentNode.currentIntersection][j] > SETTINGS.maximumLightTime) {
 									valid = false;
 									//cout << "NOT VALID" << endl;
 								}
+							}
+							if (allGreaterZero && iter > 0) {
+								allGreaterZero = false;
 							}
 							if (valid) {
 								//cout << "YES VALID" << endl;
@@ -451,7 +482,7 @@ public:
 				// effectively a clear
 				pq = priority_queue<Node, vector<Node>, LessThanByPromising>();
 				Node nextInitial(this, intersections, resultLightTimes, 0);
-				pq.push(initial);
+				pq.push(nextInitial);
 				totalNodes = 1;
 			}
 		}
