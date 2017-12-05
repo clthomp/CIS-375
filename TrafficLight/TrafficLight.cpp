@@ -475,7 +475,7 @@ public:
 					// if the current node is a potential solution (reached last intersection)
 					// and the top node is no more promising than the current Node,
 					// then a solution has been found
-					if (currentNode.currentIntersection == intersections.size() && pq.top().potentialFlow <= currentNode.potentialFlow) {
+					if (pq.empty() || currentNode.currentIntersection == intersections.size() && pq.top().potentialFlow <= currentNode.potentialFlow) {
 						// lightTimes belonging to the best node
 						resultLightTimes = currentNode.lightTimes;
 						//cout << "\tYA OK BUT YES HERE WE GO" << endl;
