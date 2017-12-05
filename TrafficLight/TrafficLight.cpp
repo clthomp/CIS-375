@@ -66,12 +66,12 @@ public:
 		defaultLightValue = max(float(1), value);
 		if (value <= 0) { cout << "Warning: Default Light Timing must be positive." << endl; }
 	}
-	void setCarStartupTime(int value) { carStartupTime = value; }
-	void setCarPassingRate(int value) { carPassingRate = value; }
-	void setDensityToCarRatio(int value) { densityToCarRatio = value; }
-	void setTravelTimeDensityMultiplier(int value) { travelTimeDensityMultiplier = value; }
-	void setLightTimeTestValueChange(int value) { lightTimeTestValueChange = value; }
-	void setIterations(int value) { iterations = value; }
+	void setCarStartupTime(float value) { carStartupTime = value; }
+	void setCarPassingRate(float value) { carPassingRate = value; }
+	void setDensityToCarRatio(float value) { densityToCarRatio = value; }
+	void setTravelTimeDensityMultiplier(float value) { travelTimeDensityMultiplier = value; }
+	void setLightTimeTestValueChange(float value) { lightTimeTestValueChange = value; }
+	void setIterations(float value) { iterations = value; }
 };
 Settings SETTINGS;
 
