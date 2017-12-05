@@ -54,16 +54,16 @@ public:
 	// each individual iteration should take the same amount of time
 	int iterations = 1;
 
-	void setMin(int value) {
-		minimumLightTime = max(1, value);
+	void setMin(float value) {
+		minimumLightTime = max(float(1), value);
 		if (value <= 0) { cout << "Warning: Minimum Light Timing must be positive." << endl;}
 	}
-	void setMax(int value) {
-		maximumLightTime = max(1, value);
+	void setMax(float value) {
+		maximumLightTime = max(float(1), value);
 		if (value <= 0) { cout << "Warning: Maximum Light Timing must be positive." << endl; }
 	}
-	void setDefaultLightValue(int value) {
-		defaultLightValue = max(1, value);
+	void setDefaultLightValue(float value) {
+		defaultLightValue = max(float(1), value);
 		if (value <= 0) { cout << "Warning: Default Light Timing must be positive." << endl; }
 	}
 	void setCarStartupTime(int value) { carStartupTime = value; }
@@ -558,7 +558,7 @@ void printLightTimings(Map map, vector<vector<int>> lightTimings) {
 // class written by Dwight Herman
 class Input {	//NEEDS TO BE CONTAINED WITHIN A TRY BLOCK. WILL THROW STRINGS IF PARSING OR ANYTHING ELSE FAILS!
 	
-	typedef void(Settings::*paramSet)(int);	//function pointer to Settings method to set a specific parameter.
+	typedef void(Settings::*paramSet)(float);	//function pointer to Settings method to set a specific parameter.
 
 private:
 	string path;			//path of .csv file (When file needs to be re-opened)
@@ -866,11 +866,11 @@ private:
 		throw string("Invalid Parameter Specifier!");
 	}
 
-	int value(string & input) {		//returns int if input can be converted into one
+	float value(string & input) {		//returns int if input can be converted into one
 	
 		try {
 
-			return stoi(input, nullptr);
+			return stof(input, nullptr);
 		}
 		catch (...) {
 
