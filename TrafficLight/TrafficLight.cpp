@@ -1001,6 +1001,12 @@ void main() {
 	bool fail;			//to exit input loop
 	Input * input;		//pointer to input; so Input object can be recreated easily.
 	Output * output;	//pointer to output; so Output object can be recreated easily.
+
+	cout << "/---------------------------------/" << endl;
+	cout << "/-TRAFFIC CONTROL IMPLEMENTATIONS-/" << endl;
+	cout << "/--TRAFFIC LIGHT CYCLE OPTIMIZER--/" << endl;
+	cout << "/---------------------------------/" << endl;
+	cout << endl;
 	
 	do													
 	{	
@@ -1040,7 +1046,10 @@ void main() {
 		
 	//INPUT IS FINISHED AND SUCCESSFUL PAST THIS LINE. MAP CALCULATIONS CAN NOW BE INITIALIZED AND OUTPUT MADE
 
+	cout << "Calculating Optimal Light Timing...";
+
 	vector<vector<int>> lightTimings = map.lightOptimization();
+	cout << "Done!" << endl;
 	printLightTimings(map, lightTimings);				//for debug?
 
 	do
@@ -1072,7 +1081,7 @@ void main() {
 
 	//OUTPUT IS FINISHED AND SUCCESSFUL PAST THIS LINE.
 
-	cout << "finished computation" << endl;
+	cout << "Closing..." << endl;
 }
 
 inline void strPopFront(string & input) {	//removes first character of 'input'
