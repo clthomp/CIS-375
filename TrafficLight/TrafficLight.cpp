@@ -112,7 +112,25 @@ public:
 // class written by Robert Piepsney
 class Intersection {
 private:
+	// unite all roads of the same name
+	void findTogetherRoads() {
+		for (int i = 0; i < roadsThatIntersect.size(); i++) {
+			bool isFound = false;
+			for (int j = 0; j < togetherRoads.size(); j++) {
+				// pair up TogetherRoad that exist with the same road name
+				if (roadsThatIntersect[i]->name == togetherRoads[j].name) {
+					isFound = true;
+					(togetherRoads[j].roads).push_back(roadsThatIntersect[i]);
+					(togetherRoads[j].density).push_back(roadDensity[i]);
+				}
+			}
 
+			// if an existing one is not found, create a new one
+			if (!isFound) {
+				togetherRoads.push_back(TogetherRoad(roadsThatIntersect[i], roadDensity[i]));
+			}
+		}
+	}
 public:
 	vector<Road*> roadsThatIntersect;
 	string name;
@@ -144,26 +162,6 @@ public:
 		}
 
 		findTogetherRoads();
-	}
-
-	// unite all roads of the same name
-	void findTogetherRoads() {
-		for (int i = 0; i < roadsThatIntersect.size(); i++) {
-			bool isFound = false;
-			for (int j = 0; j < togetherRoads.size(); j++) {
-				// pair up TogetherRoad that exist with the same road name
-				if (roadsThatIntersect[i]->name == togetherRoads[j].name) {
-					isFound = true;
-					(togetherRoads[j].roads).push_back(roadsThatIntersect[i]);
-					(togetherRoads[j].density).push_back(roadDensity[i]);
-				}
-			}
-
-			// if an existing one is not found, create a new one
-			if (!isFound) {
-				togetherRoads.push_back(TogetherRoad(roadsThatIntersect[i], roadDensity[i]));
-			}
-		}
 	}
 
 	// if roadIndex is an index for a Road in roadsThatIntersect
