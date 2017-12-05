@@ -837,7 +837,7 @@ private:
 		throw string("Invalid Parameter Specifier!");
 	}
 
-	float value(string & input) {		//returns int if input can be converted into one
+	float value(string & input) {		//returns float if input can be converted into one
 	
 		try {
 
@@ -845,7 +845,7 @@ private:
 		}
 		catch (...) {
 
-			throw string("Invalid Integer!");
+			throw string("Invalid Number!");
 		}
 	}
 
