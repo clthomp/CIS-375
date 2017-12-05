@@ -1,0 +1,13 @@
+:BEGIN,,,
+:ROADS,,,
+Thompson,1,30,
+Thompson,2,30,
+Herman,3,30,
+Herman,4,30,
+:INTERSECTIONS,,,
+:[Intersection 1],,,
+Thompson,1,30,3
+Herman,4,30,2
+Thompson,2,25,3
+Herman,3,25,2
+:END,,,

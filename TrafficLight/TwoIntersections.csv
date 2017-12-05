@@ -1,0 +1,21 @@
+:BEGIN,,,
+:ROADS,,,
+Piepsney,6,24,
+Piepsney,7,56,
+Piepsney,8,30,
+Herman,3,18,
+Herman,4,10,
+Thompson,9,36,
+Thompson,10,45,
+:INTERSECTIONS,,,
+:[Intersection 1],,,
+Herman,4,23,2
+Piepsney,8,41,4
+Herman,3,23,2
+Piepsney,7,41,4
+:[Intersection 2],,,
+Thompson,10,12,2
+Piepsney,7,40,4
+Thompson,9,12,2
+Piepsney,6,43,4
+:END,,,
