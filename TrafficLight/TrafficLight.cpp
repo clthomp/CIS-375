@@ -48,15 +48,15 @@ public:
 	// each individual iteration should take the same amount of time
 	int iterations = 1;
 
-	void setMin(int value) { minimumLightTime = value; }
-	void setMax(int value) { maximumLightTime = value; }
-	void setDefaultLightValue(int value) { defaultLightValue = value; }
-	void setCarStartupTime(int value) { carStartupTime = value; }
-	void setCarPassingRate(int value) { carPassingRate = value; }
-	void setDensityToCarRatio(int value) { densityToCarRatio = value; }
-	void setTravelTimeDensityMultiplier(int value) { travelTimeDensityMultiplier = value; }
-	void setLightTimeTestValueChange(int value) { lightTimeTestValueChange = value; }
-	void setIterations(int value) { iterations = value; }
+	void setMin(float value) { minimumLightTime = value; }
+	void setMax(float value) { maximumLightTime = value; }
+	void setDefaultLightValue(float value) { defaultLightValue = value; }
+	void setCarStartupTime(float value) { carStartupTime = value; }
+	void setCarPassingRate(float value) { carPassingRate = value; }
+	void setDensityToCarRatio(float value) { densityToCarRatio = value; }
+	void setTravelTimeDensityMultiplier(float value) { travelTimeDensityMultiplier = value; }
+	void setLightTimeTestValueChange(float value) { lightTimeTestValueChange = value; }
+	void setIterations(float value) { iterations = value; }
 };
 Settings SETTINGS;
 
@@ -543,7 +543,7 @@ void printLightTimings(Map map, vector<vector<int>> lightTimings) {
 // class written by Dwight Herman
 class Input {	//NEEDS TO BE CONTAINED WITHIN A TRY BLOCK. WILL THROW STRINGS IF PARSING OR ANYTHING ELSE FAILS!
 	
-	typedef void(Settings::*paramSet)(int);	//function pointer to Settings method to set a specific parameter.
+	typedef void(Settings::*paramSet)(float);	//function pointer to Settings method to set a specific parameter.
 
 private:
 	string path;			//path of .csv file (When file needs to be re-opened)
@@ -851,11 +851,11 @@ private:
 		throw string("Invalid Parameter Specifier!");
 	}
 
-	int value(string & input) {		//returns int if input can be converted into one
+	float value(string & input) {		//returns int if input can be converted into one
 	
 		try {
 
-			return stoi(input, nullptr);
+			return stof(input, nullptr);
 		}
 		catch (...) {
 
