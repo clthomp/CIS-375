@@ -1,5 +1,5 @@
-:BEGIN,,
-:ROADS,,
+:BEGIN,,,
+:ROADS,,,
 Dequindre,1,90,
 Dequindre,2,90,
 Dequindre,3,90,
@@ -95,248 +95,248 @@ Groesbeck,5,16,
 14 Mile,4,80,
 14 Mile,5,90,
 14 Mile,6,90,
-:INTERSECTIONS,,
-:8 Mile Dequindre,,
+:INTERSECTIONS,,,
+:8 Mile Dequindre,,,
 Dequindre,1,15,2
 8 Mile,1,30,4
-:9 Mile Dequindre,,
+:9 Mile Dequindre,,,
 Dequindre,1,15,3
 9 Mile,1,15,3
 Dequindre,2,15,3
-:10 Mile Dequindre,,
+:10 Mile Dequindre,,,
 Dequindre,2,15,3
 10 Mile,1,20,3
 Dequindre,3,15,3
-:11 Mile Dequindre,,
+:11 Mile Dequindre,,,
 Dequindre,3,15,3
 11 Mile,1,35,4
 Dequindre,4,15,3
-:12 Mile Dequindre,,
+:12 Mile Dequindre,,,
 Dequindre,4,15,3
 12 Mile,1,20,3
 Dequindre,5,15,3
-:13 Mile Dequindre,,
+:13 Mile Dequindre,,,
 Dequindre,5,15,3
 13 Mile,1,15,3
 Dequindre,6,15,3
-:14 Mile Dequindre,,
+:14 Mile Dequindre,,,
 Dequindre,6,15,3
 14 Mile,1,15,3
-:8 Mile Ryan,,
+:8 Mile Ryan,,,
 Ryan,1,20,3
 8 Mile,2,30,4
 8 Mile,1,30,4
-:9 Mile Ryan,,
+:9 Mile Ryan,,,
 Ryan,2,20,3
 9 Mile,2,15,3
 Ryan,1,20,3
 9 Mile,1,15,3
-:10 Mile Ryan,,
+:10 Mile Ryan,,,
 Ryan,3,20,3
 10 Mile,2,20,3
 Ryan,2,20,3
 10 Mile,1,20,3
-:11 Mile Ryan,,
+:11 Mile Ryan,,,
 Ryan,4,20,3
 11 Mile,2,35,4
 Ryan,3,20,3
 11 Mile,1,35,4
-:12 Mile Ryan,,
+:12 Mile Ryan,,,
 Ryan,5,20,3
 12 Mile,2,20,3
 Ryan,4,20,3
 12 Mile,1,20,3
-:13 Mile Ryan,,
+:13 Mile Ryan,,,
 Ryan,6,20,3
 13 Mile,2,15,3
 Ryan,5,20,3
 13 Mile,1,15,3
-:14 Mile Ryan,,
+:14 Mile Ryan,,,
 14 Mile,2,15,3
 Ryan,6,20,3
 14 Mile,1,15,3
-:8 Mile Mound,,
+:8 Mile Mound,,,
 Mound,1,35,4
 8 Mile,3,30,4
 8 Mile,2,30,4
-:9 Mile Mound,,
+:9 Mile Mound,,,
 Mound,2,35,4
 9 Mile,3,15,2
 Mound,1,35,4
 9 Mile,2,15,2
-:10 Mile Mound,,
+:10 Mile Mound,,,
 Mound,3,35,4
 10 Mile,3,20,3
 Mound,2,35,4
 10 Mile,2,20,3
-:11 Mile Mound,,
+:11 Mile Mound,,,
 Mound,4,35,4
 11 Mile,3,35,4
 Mound,3,35,4
 11 Mile,2,35,4
-:12 Mile Mound,,
+:12 Mile Mound,,,
 Mound,5,35,4
 12 Mile,3,20,3
 Mound,4,35,4
 12 Mile,2,20,3
-:13 Mile Mound,,
+:13 Mile Mound,,,
 Mound,6,35,4
 13 Mile,3,15,3
 Mound,5,35,4
 13 Mile,2,15,3
-:14 Mile Mound,,
+:14 Mile Mound,,,
 14 Mile,3,15,3
 Mound,6,35,4
 14 Mile,2,15,3
-:8 Mile Van Dyke,,
+:8 Mile Van Dyke,,,
 Van Dyke,1,30,4
 8 Mile,4,30,4
 8 Mile,3,30,4
-:9 Mile Van Dyke,,
+:9 Mile Van Dyke,,,
 Van Dyke,2,30,4
 9 Mile,4,15,2
 Van Dyke,1,30,4
 9 Mile,3,15,2
-:10 Mile Van Dyke,,
+:10 Mile Van Dyke,,,
 Van Dyke,3,30,4
 10 Mile,4,20,3
 Van Dyke,2,30,4
 10 Mile,3,20,3
-:11 Mile Van Dyke,,
+:11 Mile Van Dyke,,,
 Van Dyke,4,30,4
 11 Mile,4,35,4
 Van Dyke,3,30,4
 11 Mile,3,35,4
-:12 Mile Van Dyke,,
+:12 Mile Van Dyke,,,
 Van Dyke,5,30,4
 12 Mile,4,20,3
 Van Dyke,4,30,4
 12 Mile,3,20,3
-:13 Mile Van Dyke,,
+:13 Mile Van Dyke,,,
 Van Dyke,6,30,4
 13 Mile,4,15,3
 Van Dyke,5,30,4
 13 Mile,3,15,3
-:14 Mile Van Dyke,,
+:14 Mile Van Dyke,,,
 14 Mile,4,15,3
 Van Dyke,6,30,4
 14 Mile,3,15,3
-:8 Mile Hoover,,
+:8 Mile Hoover,,,
 Hoover,1,20,2
 8 Mile,5,30,4
 8 Mile,4,30,2
-:9 Mile Hoover,,
+:9 Mile Hoover,,,
 Hoover,2,20,3
 9 Mile,5,15,3
 Hoover,1,20,3
 9 Mile,4,15,3
-:10 Mile Hoover,,
+:10 Mile Hoover,,,
 Hoover,3,20,3
 10 Mile,5,20,3
 Hoover,2,20,3
 10 Mile,4,20,3
-:11 Mile Hoover,,
+:11 Mile Hoover,,,
 Hoover,4,20,3
 11 Mile,5,35,4
 Hoover,3,20,3
 11 Mile,4,35,4
-:12 Mile Hoover,,
+:12 Mile Hoover,,,
 Hoover,5,20,3
 12 Mile,5,20,3
 Hoover,4,20,3
 12 Mile,4,20,3
-:13 Mile Hoover,,
+:13 Mile Hoover,,,
 Hoover,6,20,3
 13 Mile,5,15,3
 Hoover,5,20,3
 13 Mile,4,15,3
-:14 Mile Hoover,,
+:14 Mile Hoover,,,
 14 Mile,5,15,3
 Hoover,6,20,3
 14 Mile,4,15,3
-:8 Mile Groesbeck,,
+:8 Mile Groesbeck,,,
 Groesbeck,1,35,4
 8 Mile,6,30,4
 8 Mile,5,30,4
-:9 Mile Groesbeck,,
+:9 Mile Groesbeck,,,
 Groesbeck,2,35,4
 9 Mile,6,15,2
 Groesbeck,1,35,4
 9 Mile,5,15,2
-:8 Mile Schoenherr,,
+:8 Mile Schoenherr,,,
 Schoenherr,1,15,2
 8 Mile,7,30,4
 8 Mile,6,30,2
-:9 Mile Schoenherr,,
+:9 Mile Schoenherr,,,
 Schoenherr,2,15,3
 9 Mile,7,15,3
 Schoenherr,1,15,3
 9 Mile,6,15,3
-:Groesbeck Schoenherr,,
+:Groesbeck Schoenherr,,,
 Schoenherr,3,15,3
 Groesbeck,3,35,4
 Schoenherr,2,15,3
 Groesbeck,2,35,4
-:10 Mile Schoenherr,,
+:10 Mile Schoenherr,,,
 Schoenherr,4,15,3
 10 Mile,6,20,3
 Schoenherr,3,15,3
 10 Mile,5,20,3
-:11 Mile Schoenherr,,
+:11 Mile Schoenherr,,,
 Schoenherr,5,15,3
 11 Mile,6,35,4
 Schoenherr,4,15,3
 11 Mile,5,35,4
-:12 Mile Schoenherr,,
+:12 Mile Schoenherr,,,
 Schoenherr,6,15,3
 12 Mile,6,20,3
 Schoenherr,5,15,3
 12 Mile,5,20,3
-:13 Mile Schoenherr,,
+:13 Mile Schoenherr,,,
 Schoenherr,7,15,3
 13 Mile,6,15,3
 Schoenherr,6,15,3
 13 Mile,5,15,3
-:14 Mile Schoenherr,,
+:14 Mile Schoenherr,,,
 14 Mile,6,15,3
 Schoenherr,7,15,3
 14 Mile,5,15,3
-:10 Mile Groesbeck,,
+:10 Mile Groesbeck,,,
 Groesbeck,4,35,4
 10 Mile,7,20,3
 Groesbeck,3,35,4
 10 Mile,6,20,3
-:11 Mile Groesbeck,,
+:11 Mile Groesbeck,,,
 Groesbeck,5,35,4
 11 Mile,7,35,4
 Groesbeck,4,35,4
 11 Mile,6,35,4
-:8 Mile Hayes,,
+:8 Mile Hayes,,,
 Hayes,1,15,2
 8 Mile,7,30,4
-:9 Mile Hayes,,
+:9 Mile Hayes,,,
 Hayes,2,15,2
 Hayes,1,15,2
 9 Mile,7,15,2
-:10 Mile Hayes,,
+:10 Mile Hayes,,,
 Hayes,3,15,2
 Hayes,2,15,2
 10 Mile,7,20,3
-:11 Mile Hayes,,
+:11 Mile Hayes,,,
 Hayes,3,15,2
 11 Mile,7,35,4
-:Groesbeck Hayes,,
+:Groesbeck Hayes,,,
 Hayes,4,15,2
 Groesbeck,5,35,4
-:12 Mile Hayes,,
+:12 Mile Hayes,,,
 Hayes,5,15,2
 Hayes,4,15,2
 12 Mile,6,20,3
-:13 Mile Hayes,,
+:13 Mile Hayes,,,
 Hayes,6,15,2
 Hayes,5,15,2
 13 Mile,6,15,3
-:14 Mile Hayes,,
+:14 Mile Hayes,,,
 Hayes,6,15,2
 14 Mile,6,15,3
-:END,,
+:END,,,
