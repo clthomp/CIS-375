@@ -1,14 +1,9 @@
 /*
 
+// Try this input
 CenterLineImport-reduced.csv
 --iterations 3
 --change 5
---calculate
-
-CenterLineImport-reduced.csv
---mintiming 1
---maxtiming 1
---default 0
 --calculate
 
 */
@@ -27,7 +22,7 @@ CenterLineImport-reduced.csv
 using namespace std;
 
 // allows printing debug messages
-bool DEBUG_MODE = false;
+bool DEBUG_MODE = true;
 
 // all parameter values should be located here
 class Settings {
@@ -223,16 +218,10 @@ public:
 			getLightChanges(currentChanges, current + 1);
 
 			currentChanges[current] += SETTINGS.lightTimeTestValueChange;
-			// don't allow any changes above max light time
-			//if (currentChanges[current] <= SETTINGS.maximumLightTime) {
-				getLightChanges(currentChanges, current + 1);
-			//}
+			getLightChanges(currentChanges, current + 1);
 
 			currentChanges[current] -= SETTINGS.lightTimeTestValueChange * 2;
-			// don't allow any changes below min light time
-			//if (currentChanges[current] >= SETTINGS.minimumLightTime) {
-				getLightChanges(currentChanges, current + 1);
-			//}
+			getLightChanges(currentChanges, current + 1);
 		}
 	}
 
@@ -264,8 +253,6 @@ public:
 					(thisRoad->travelTime * SETTINGS.travelTimeDensityMultiplier);
 
 				minusDensities[i][j] = min(intersections[i].roadDensity[j], minusDensities[i][j]);
-
-				//cout << "OK SEE: " << minusDensities[i][j] << endl;
 			}
 		}
 
@@ -282,7 +269,6 @@ public:
 
 				// outgoing traffic
 				// expected density removed
-				//cout << " LETS SEE: " << intersections[i].roadDensity[j] << " - " << minusDensities[i][j] << endl;
 				intersections[i].roadDensity[j] -= minusDensities[i][j];
 
 				// incoming traffic
@@ -320,9 +306,9 @@ public:
 					// the Road opposite to this one at the same intersection was found. But since they share light time, non-opposite would work too
 					intersections[i].roadDensity[j] += minusDensities[neighborIntersectionIndex][neighborParallelRoadIndex];
 				}
-				else if (DEBUG_MODE) {
-					cout << "No neighbor intersection found" << endl;
-				}
+				//else if (DEBUG_MODE) {
+				//	cout << "No neighbor intersection found" << endl;
+				//}
 			}
 		}
 	}
@@ -398,7 +384,6 @@ public:
 
 		// set starter values as average between min and max allowed
 		vector<vector<int>> initialLightTimes;
-		//float averageLightTime = (SETTINGS.minimumLightTime + SETTINGS.maximumLightTime) / 2;
 		float averageLightTime = SETTINGS.defaultLightValue;
 		for (int i = 0; i < intersections.size(); i++) {
 			vector<int> singleLightTime(intersections[i].togetherRoads.size(), averageLightTime); /*number of light times as connected roads*/
@@ -416,7 +401,6 @@ public:
 			int lightCount = initial.lightTimes[i].size();
 			vector<int> changesSet(lightCount, 0);
 			tempSolutions.clear();
-			// OPTIMIZE: calculate the deltas once and reuse them
 			getLightChanges(changesSet, 0); //backtracking  // results explained at that function
 			allChangeSets.push_back(tempSolutions);
 		}
@@ -430,19 +414,13 @@ public:
 					// add more nodes to pq
 					// ensures it hasn't passed max number of intersections
 					if (currentNode.currentIntersection < currentNode.lightTimes.size()) {
-						//int lightCount = currentNode.lightTimes[currentNode.currentIntersection].size();
-						//vector<int> changesSet(lightCount, 0);
-						//tempSolutions.clear();
-						// OPTIMIZE: calculate the deltas once and reuse them
-						//getLightChanges(changesSet, 0); //backtracking  // results explained at that function
 						if (DEBUG_MODE) {
-							cout << "Size of thing: " << allChangeSets[currentNode.currentIntersection].size() << endl;
+							cout << "Size of possible choices: " << allChangeSets[currentNode.currentIntersection].size() << endl;
 							cout << "Total Nodes: " << totalNodes << endl;
 							cout << "Current Intersection: " << currentNode.currentIntersection << endl;
 						}
-						// place each possible solution into a Node in the PQ
-						//cout << "SIZE" << tempSolutions.size() << endl;
 
+						// place each possible solution into a Node in the PQ
 						for (int i = 0; i < allChangeSets[currentNode.currentIntersection].size(); i++) {
 							vector<vector<int>> newLightTimes = currentNode.lightTimes;
 							bool valid = true;
@@ -455,14 +433,12 @@ public:
 								if (newLightTimes[currentNode.currentIntersection][j] < SETTINGS.minimumLightTime
 									|| newLightTimes[currentNode.currentIntersection][j] > SETTINGS.maximumLightTime) {
 									valid = false;
-									//cout << "NOT VALID" << endl;
 								}
 							}
 							if (allGreaterZero && iter > 0) {
 								allGreaterZero = false;
 							}
 							if (valid) {
-								//cout << "YES VALID" << endl;
 								Node newNode(this, intersections, newLightTimes, currentNode.currentIntersection + 1);
 								pq.push(newNode);
 								totalNodes++;
@@ -476,17 +452,12 @@ public:
 					if (pq.empty() || currentNode.currentIntersection == intersections.size() && pq.top().potentialFlow <= currentNode.potentialFlow) {
 						// lightTimes belonging to the best node
 						resultLightTimes = currentNode.lightTimes;
-						//cout << "\tYA OK BUT YES HERE WE GO" << endl;
 						break;
-					} else {
-						//cout << "\tya ok but no try again" << endl;
-						//cout << currentNode.currentIntersection << " vs " << intersections.size() << endl;
-						//cout << pq.top().potentialFlow << " > " << currentNode.potentialFlow << endl;
 					}
 				}
 
 				if (DEBUG_MODE) {
-					cout << "Optimization iteration ran using Node Count: " << totalNodes << endl;
+					cout << "Optimization iteration [" << iter << "] ran using Node Count: " << totalNodes << endl;
 				}
 
 				// spread density
@@ -538,6 +509,8 @@ public:
 	}
 };
 
+// used when debugging to display
+// resulting light times and final density on screen
 void printLightTimings(Map map, vector<vector<int>> lightTimings) {
 	for (int i = 0; i < lightTimings.size(); i++) {
 		cout << "Intersection: " << map.intersections[i].name << endl;
@@ -961,41 +934,7 @@ public:
 };
 
 void main() {
-	/*Map map;
-	SETTINGS.minimumLightTime = 15;
-	SETTINGS.maximumLightTime = 30;
-
-	Road roadA1 = Road("A", "1", 5, 1);
-	Road roadA2 = Road("A", "2", 5, 1);
-	Road roadB1 = Road("B", "1", 5, 1);
-	Road roadB2 = Road("B", "2", 5, 1);
-
-	vector<Road*> roadList  = { &roadA1, &roadA2, &roadB1, &roadB2 };
-	vector<Road*> roadListB = { &roadB1 };
-	vector<float> densityList = { 1, 1, 1, 1 };
-	vector<float> densityListB = { 1 };
-
-	Intersection intersectionAB = Intersection("A x B", roadList, densityList);
-	Intersection intersectionB = Intersection("B", roadListB, densityListB);
-
-	roadA1.setEndPoint(intersectionAB);
-	roadA2.setEndPoint(intersectionAB);
-	roadB1.setEndPoint(intersectionAB);
-	roadB1.setEndPoint(intersectionB);
-	roadB2.setEndPoint(intersectionAB);
-
-	map.intersections.push_back(intersectionAB);
-	map.intersections.push_back(intersectionB);
-
-	vector<vector<int>> lightTimings = map.lightOptimization();
-
-	printLightTimings(map, lightTimings);
-	
-	cout << "finished computation";
-	*/
-
 	//HOW TO USE INPUT:
-  
 	Map map;			//to store Input data
 	string keyin;		//to store keyboard input
 	bool fail;			//to exit input loop
@@ -1050,7 +989,10 @@ void main() {
 
 	vector<vector<int>> lightTimings = map.lightOptimization();
 	cout << "Done!" << endl;
-	printLightTimings(map, lightTimings);				//for debug?
+
+	if (DEBUG_MODE) {
+		printLightTimings(map, lightTimings);
+	}
 
 	do
 	{
