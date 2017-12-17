@@ -992,7 +992,7 @@ void main() {
 	cout << "Calculating Optimal Light Timing...";
 
 	//clock_t startTime = clock();
-	//vector<vector<int>> lightTimings = map.lightOptimization();
+	vector<vector<int>> lightTimings = map.lightOptimization();
 	cout << "Done!" << endl;
 	//clock_t runTime = clock() - startTime;
 	//cout << "Run time: " << runTime << " clock ticks" << endl;
