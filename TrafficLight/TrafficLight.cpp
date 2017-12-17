@@ -6,6 +6,9 @@ CenterLineImport-reduced.csv
 --change 5
 --calculate
 
+runtime-test.csv
+--iterations 1
+--calculate
 */
 
 #include <iostream>
@@ -15,6 +18,7 @@ CenterLineImport-reduced.csv
 #include <queue>
 #include <string>
 #include <algorithm>
+#include <time.h>
 
 // somewhat issue: density "leaves" the system depending on the use test case design
 // if there are roads with no intersection on 1 side at the edges or elsewhere
@@ -22,7 +26,7 @@ CenterLineImport-reduced.csv
 using namespace std;
 
 // allows printing debug messages
-bool DEBUG_MODE = true;
+bool DEBUG_MODE = false;
 
 // all parameter values should be located here
 class Settings {
@@ -987,8 +991,11 @@ void main() {
 
 	cout << "Calculating Optimal Light Timing...";
 
-	vector<vector<int>> lightTimings = map.lightOptimization();
+	//clock_t startTime = clock();
+	//vector<vector<int>> lightTimings = map.lightOptimization();
 	cout << "Done!" << endl;
+	//clock_t runTime = clock() - startTime;
+	//cout << "Run time: " << runTime << " clock ticks" << endl;
 
 	if (DEBUG_MODE) {
 		printLightTimings(map, lightTimings);
